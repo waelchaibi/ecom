@@ -1,0 +1,24 @@
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+*.userosscache
+.vs/
+
+# Secrets / local overrides
+**/appsettings.*.local.json
+**/secrets.json
+
+# Angular / Node (ecommerce-web)
+ecommerce-web/node_modules/
+ecommerce-web/dist/
+ecommerce-web/.angular/
+
+# Logs & OS
+*.log
+.DS_Store
+Thumbs.db
+
+# Scratch / local notes
+setup_models.txt

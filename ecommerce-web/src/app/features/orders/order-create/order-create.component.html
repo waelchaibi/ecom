@@ -1,0 +1,67 @@
+<h1>Create order</h1>
+
+@if (error && !products.length) {
+  <p class="error">{{ error }}</p>
+}
+
+@if (products.length) {
+  <form (ngSubmit)="submit()" class="form">
+    <label class="field">
+      <span>Customer ID</span>
+      <input
+        type="number"
+        name="customerId"
+        min="1"
+        [(ngModel)]="customerId"
+        (ngModelChange)="onCustomerIdChange()"
+        required
+      />
+    </label>
+
+    <fieldset>
+      <legend>Line items</legend>
+      @for (line of lines; track $index; let i = $index) {
+        <div class="line">
+          <label>
+            Product
+            <select
+              name="product-{{ i }}"
+              [(ngModel)]="line.productId"
+              (ngModelChange)="onLineChange()"
+            >
+              <option [ngValue]="null">Select…</option>
+              @for (p of products; track p.id) {
+                <option [ngValue]="p.id">{{ p.name }} ({{ p.stockQuantity }} in stock)</option>
+              }
+            </select>
+          </label>
+          <label>
+            Qty
+            <input
+              type="number"
+              name="qty-{{ i }}"
+              min="1"
+              [(ngModel)]="line.quantity"
+              (ngModelChange)="onLineChange()"
+            />
+          </label>
+          @if (lines.length > 1) {
+            <button type="button" class="btn-ghost" (click)="removeLine(i)">Remove</button>
+          }
+        </div>
+      }
+      <button type="button" class="btn-secondary" (click)="addLine()">Add line</button>
+    </fieldset>
+
+    <button type="submit" class="btn-primary" [disabled]="submitting">
+      {{ submitting ? 'Placing order…' : 'Place order' }}
+    </button>
+  </form>
+}
+
+@if (message) {
+  <p class="success">{{ message }}</p>
+}
+@if (error && products.length) {
+  <p class="error">{{ error }}</p>
+}

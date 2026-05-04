@@ -1,0 +1,31 @@
+h1 {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid #e8e8e8;
+  }
+
+  th {
+    font-weight: 600;
+    color: #444;
+  }
+}
+
+.muted {
+  color: #666;
+}
+
+.error {
+  color: #b00020;
+}

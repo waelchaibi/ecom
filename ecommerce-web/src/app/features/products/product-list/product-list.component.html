@@ -1,0 +1,34 @@
+<h1>Products</h1>
+
+@if (loading) {
+  <p class="muted">Loading…</p>
+}
+
+@if (error) {
+  <p class="error">{{ error }}</p>
+}
+
+@if (!loading && !error) {
+  <table class="grid">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (p of products; track p.id) {
+        <tr>
+          <td>{{ p.name }}</td>
+          <td>{{ p.price | number : '1.2-2' }}</td>
+          <td>{{ p.stockQuantity }}</td>
+          <td>
+            <a routerLink="/order" [queryParams]="{ customerId: 1, productId: p.id }">Order</a>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
