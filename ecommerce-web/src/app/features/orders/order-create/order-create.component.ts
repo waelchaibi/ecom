@@ -2,9 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
+import { CustomerApiService } from '../../../core/services/customer-api.service';
 import { ProductApiService } from '../../../core/services/product-api.service';
 import { OrderApiService } from '../../../core/services/order-api.service';
+import { Customer } from '../../../core/models/customer';
 import { Product } from '../../../core/models/product';
+import { Order } from '../../../core/models/order';
 
 interface LineDraft {
   productId: number | null;
@@ -22,31 +26,48 @@ export class OrderCreateComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly productsApi = inject(ProductApiService);
+  private readonly customersApi = inject(CustomerApiService);
   private readonly ordersApi = inject(OrderApiService);
 
   products: Product[] = [];
+  customers: Customer[] = [];
   customerId = 1;
+  promotionCode = '';
   lines: LineDraft[] = [{ productId: null, quantity: 1 }];
   submitting = false;
   message: string | null = null;
   error: string | null = null;
+  lastOrder: Order | null = null;
 
   ngOnInit(): void {
-    this.productsApi.getAll().subscribe({
-      next: (list) => {
-        this.products = list;
+    forkJoin({
+      products: this.productsApi.getAll(),
+      customers: this.customersApi.getAll()
+    }).subscribe({
+      next: ({ products, customers }) => {
+        this.products = products;
+        this.customers = customers;
+
+        if (customers.length === 0) {
+          this.error = 'No customers available.';
+          return;
+        }
+
         const q = this.route.snapshot.queryParamMap;
         const cid = Number(q.get('customerId'));
-        if (!Number.isNaN(cid) && cid > 0) {
+        if (!Number.isNaN(cid) && cid > 0 && customers.some((c) => c.id === cid)) {
           this.customerId = cid;
+        } else if (customers.length > 0) {
+          this.customerId = customers[0].id;
         }
+
         const pid = Number(q.get('productId'));
         if (!Number.isNaN(pid) && pid > 0) {
           this.lines = [{ productId: pid, quantity: 1 }];
         }
       },
       error: (e) => {
-        this.error = e.error?.error ?? e.message ?? 'Could not load products';
+        this.error = e.error?.error ?? e.message ?? 'Could not load products or customers';
       }
     });
   }
@@ -64,7 +85,7 @@ export class OrderCreateComponent implements OnInit {
     this.syncUrl();
   }
 
-  onCustomerIdChange(): void {
+  onCustomerChange(): void {
     this.syncUrl();
   }
 
@@ -89,6 +110,7 @@ export class OrderCreateComponent implements OnInit {
   submit(): void {
     this.message = null;
     this.error = null;
+    this.lastOrder = null;
 
     const items = this.lines
       .filter((l) => l.productId != null && l.quantity != null && l.quantity > 0)
@@ -103,15 +125,23 @@ export class OrderCreateComponent implements OnInit {
     }
 
     this.submitting = true;
-    this.ordersApi.create({ customerId: this.customerId, items }).subscribe({
-      next: (order) => {
-        this.message = `Order #${order.id} created. Total: ${order.totalAmount}`;
-        this.submitting = false;
-      },
-      error: (e) => {
-        this.error = e.error?.error ?? e.message ?? 'Order failed';
-        this.submitting = false;
-      }
-    });
+    const promo = this.promotionCode.trim();
+    this.ordersApi
+      .create({
+        customerId: this.customerId,
+        items,
+        promotionCode: promo.length ? promo : undefined
+      })
+      .subscribe({
+        next: (order) => {
+          this.lastOrder = order;
+          this.message = `Order #${order.id} created. Total: ${order.totalAmount}`;
+          this.submitting = false;
+        },
+        error: (e) => {
+          this.error = e.error?.error ?? e.message ?? 'Order failed';
+          this.submitting = false;
+        }
+      });
   }
 }

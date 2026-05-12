@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using EcommerceAPI.Data;
+using EcommerceAPI.GiftRules;
 using EcommerceAPI.Repositories;
 using EcommerceAPI.Services;
 using Microsoft.AspNetCore.Diagnostics;
@@ -21,9 +22,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IGiftRepository, GiftRepository>();
+builder.Services.AddScoped<IGiftRuleRepository, GiftRuleRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IGiftService, GiftService>();
+builder.Services.AddScoped<IGiftRuleService, GiftRuleService>();
+builder.Services.AddScoped<IGiftRuleFactory, GiftRuleFactory>();
+builder.Services.AddScoped<IGiftAssignmentService, GiftAssignmentService>();
 
 builder.Services.AddCors(options =>
 {

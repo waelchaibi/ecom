@@ -17,7 +17,8 @@ h1 {
   gap: 0.35rem;
   font-size: 0.9rem;
 
-  input {
+  input,
+  select {
     padding: 0.45rem 0.5rem;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -101,4 +102,24 @@ fieldset {
 .error {
   color: #b00020;
   margin-top: 0.5rem;
+}
+
+.gift-panel {
+  margin-top: 1.25rem;
+  padding: 1rem 1.1rem;
+  border-radius: 8px;
+  border: 1px solid #c8e6c9;
+  background: #f1faf1;
+  max-width: 36rem;
+}
+
+.gift-headline {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+  color: #0d4d2a;
+}
+
+.gift-list {
+  margin: 0;
+  padding-left: 1.25rem;
 }

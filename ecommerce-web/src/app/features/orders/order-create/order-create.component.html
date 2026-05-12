@@ -1,20 +1,33 @@
 <h1>Create order</h1>
 
-@if (error && !products.length) {
+@if (error && !(products.length && customers.length)) {
   <p class="error">{{ error }}</p>
 }
 
-@if (products.length) {
+@if (products.length && customers.length) {
   <form (ngSubmit)="submit()" class="form">
     <label class="field">
-      <span>Customer ID</span>
-      <input
-        type="number"
+      <span>Customer</span>
+      <select
         name="customerId"
-        min="1"
         [(ngModel)]="customerId"
-        (ngModelChange)="onCustomerIdChange()"
+        (ngModelChange)="onCustomerChange()"
         required
+      >
+        @for (c of customers; track c.id) {
+          <option [ngValue]="c.id">{{ c.name }} — {{ c.email }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="field">
+      <span>Promotion code (optional)</span>
+      <input
+        type="text"
+        name="promotionCode"
+        [(ngModel)]="promotionCode"
+        placeholder="e.g. SPRINT2"
+        autocomplete="off"
       />
     </label>
 
@@ -62,6 +75,22 @@
 @if (message) {
   <p class="success">{{ message }}</p>
 }
-@if (error && products.length) {
+
+@if (lastOrder?.assignedGifts?.length) {
+  <div class="gift-panel">
+    <p class="gift-headline">You received a promotional gift 🎁</p>
+    <ul class="gift-list">
+      @for (g of lastOrder!.assignedGifts!; track g.giftId + '-' + g.giftRuleId) {
+        <li>
+          <strong>{{ g.giftName }}</strong>
+          @if (g.quantity > 1) {
+            <span> × {{ g.quantity }}</span>
+          }
+        </li>
+      }
+    </ul>
+  </div>
+}
+@if (error && products.length && customers.length) {
   <p class="error">{{ error }}</p>
 }

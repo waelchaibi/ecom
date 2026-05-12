@@ -11,4 +11,5 @@ public class Order
     // Navigation properties
     public Customer? Customer { get; set; }
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public ICollection<OrderGift> OrderGifts { get; set; } = new List<OrderGift>();
 }

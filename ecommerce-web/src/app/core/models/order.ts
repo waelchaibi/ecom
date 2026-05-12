@@ -5,6 +5,13 @@ export interface OrderItem {
   price: number;
 }
 
+export interface OrderGiftSummary {
+  giftId: number;
+  giftName: string;
+  quantity: number;
+  giftRuleId: number;
+}
+
 export interface Order {
   id: number;
   customerId: number;
@@ -12,9 +19,11 @@ export interface Order {
   createdAt: string;
   status: string;
   orderItems: OrderItem[];
+  assignedGifts?: OrderGiftSummary[];
 }
 
 export interface CreateOrderPayload {
   customerId: number;
   items: { productId: number; quantity: number }[];
+  promotionCode?: string;
 }
