@@ -1,0 +1,48 @@
+<div class="page-header">
+  <h1>My orders</h1>
+  @if (auth.profile(); as p) {
+    <p class="lead">Signed in as {{ p.name }} · {{ p.email }}</p>
+  }
+</div>
+
+@if (err) {
+  <div class="alert alert-error">{{ err }}</div>
+}
+
+@if (orders.length === 0 && !err) {
+  <div class="empty-state surface-card">
+    <h2>No orders yet</h2>
+    <p class="muted">When you place an order, it will show up here.</p>
+    <a routerLink="/products" class="btn-primary">Start shopping</a>
+  </div>
+}
+
+@if (orders.length) {
+  <div class="order-cards">
+    @for (o of orders; track o.id) {
+      <article class="order-card surface-card">
+        <div class="order-card__head">
+          <div>
+            <span class="order-card__id">Order #{{ o.id }}</span>
+            <span class="order-card__date">{{ o.createdAt | date: 'medium' }}</span>
+          </div>
+          <span [class]="statusClass(o.status)">{{ o.status }}</span>
+        </div>
+        <p class="order-card__total">{{ o.totalAmount | number: '1.2-2' }}</p>
+        <div class="order-card__actions">
+          @if (o.status === 'Pending') {
+            <button type="button" class="btn-accent btn-sm" (click)="pay(o, $event)" [disabled]="busyId === o.id">
+              Pay (simulate)
+            </button>
+          }
+          <a class="btn-secondary btn-sm" [routerLink]="['/account/orders', o.id]">View details</a>
+        </div>
+      </article>
+    }
+  </div>
+}
+
+<p class="orders-footer">
+  <a routerLink="/order" class="btn-primary btn-sm">Place new order</a>
+  <button type="button" class="btn-ghost btn-sm" (click)="logout()">Sign out</button>
+</p>

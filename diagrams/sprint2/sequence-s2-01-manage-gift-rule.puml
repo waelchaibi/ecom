@@ -1,0 +1,47 @@
+@startuml Sequence_S2_01_Manage_Gift_Rule
+' US-S2-01 : Admin configure une règle cadeau
+
+title US-S2-01 — Configurer une règle cadeau (admin)
+
+actor "Admin\n(Angular)" as AdminUI
+participant "AdminGiftRulesController\n/api/admin/gift-rules" as RulesCtrl
+participant "GiftRuleService" as RuleSvc
+participant "GiftRepository" as GiftRepo
+database "PostgreSQL\n(EF Core)" as DB
+
+AdminUI -> AdminUI : JWT Admin en localStorage\n(Interceptor Bearer)
+
+AdminUI -> RulesCtrl : POST /api/admin/gift-rules\n[JWT Admin]\n{ ruleType, conditionValue,\n  giftId, isActive, priority }
+activate RulesCtrl
+
+RulesCtrl -> RuleSvc : CreateAsync(dto)
+activate RuleSvc
+RuleSvc -> GiftRepo : GetByIdAsync(giftId)
+GiftRepo -> DB : SELECT Gift
+alt gift introuvable
+  RuleSvc --> RulesCtrl : 404
+  RulesCtrl --> AdminUI : erreur
+else OK
+  RuleSvc -> DB : INSERT GiftRule
+  RuleSvc --> RulesCtrl : GiftRuleDTO
+  RulesCtrl --> AdminUI : 201 Created
+end
+deactivate RuleSvc
+deactivate RulesCtrl
+
+opt Mise à jour / activation
+  AdminUI -> RulesCtrl : PUT /api/admin/gift-rules/{id}
+  RulesCtrl -> RuleSvc : UpdateAsync(id, dto)
+  RuleSvc -> DB : UPDATE GiftRule
+
+  AdminUI -> RulesCtrl : PATCH .../active\n{ isActive: false }
+  RulesCtrl -> RuleSvc : SetActiveAsync(id, isActive)
+  RuleSvc -> DB : UPDATE IsActive
+end
+
+note over AdminUI, DB
+  Sprint 2 initial : aussi POST /api/giftrules (public).
+  **État actuel** : gestion principale via admin JWT.
+end note
+
+@enduml

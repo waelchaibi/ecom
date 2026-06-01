@@ -4,6 +4,9 @@ export interface Product {
   description: string;
   price: number;
   stockQuantity: number;
+  categoryId?: number | null;
+  categoryName?: string | null;
+  imageUrl?: string | null;
 }
 
 export interface CreateProductPayload {
@@ -11,4 +14,6 @@ export interface CreateProductPayload {
   description: string;
   price: number;
   stockQuantity: number;
+  categoryId?: number | null;
+  imageUrl?: string | null;
 }

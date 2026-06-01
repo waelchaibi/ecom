@@ -1,0 +1,160 @@
+@startuml Class_Diagram_Sprint3
+' Sprint 3 — Administration, sécurité JWT, analytics, audit
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam packageStyle rectangle
+
+title Diagramme de classes — Sprint 3 (admin, analytics, audit)
+
+package "Domaine référencé (S1–S2)" #F5F5F5 {
+  class Product <<entity>>
+  class Order <<entity>>
+  class GiftRule <<entity>>
+  class Customer <<entity>>
+}
+
+package "Administration (persistance)" #ECEFF1 {
+  class AuditLog {
+    + Id : int <<PK>>
+    + AdminUsername : string
+    + Action : string
+    + EntityType : string
+    + EntityId : int?
+    + Details : string?
+    + CreatedAt : DateTime
+  }
+}
+
+package "Sécurité & configuration" #E8EAF6 {
+  class JwtOptions <<config>> {
+    + Secret : string
+    + Issuer : string
+    + Audience : string
+    + ExpirationMinutes : int
+  }
+
+  class AdminCredentialsOptions <<config>> {
+    + Username : string
+    + Password : string
+  }
+
+  class AuthRoles <<utility>> {
+    {static} + Admin : string
+    {static} + Customer : string
+  }
+
+  class JwtTokenService {
+    + CreateToken(username, role) : string
+  }
+}
+
+package "Services métier admin" #E3F2FD {
+  class AnalyticsService {
+    + GetDashboardAsync(lowStockThreshold) : AnalyticsDashboardDTO
+    + ExportCsvAsync(lowStockThreshold) : Stream
+  }
+
+  class AdminProductService {
+    + CreateAsync / UpdateAsync / DeleteAsync
+    + UpdateStockAsync
+  }
+
+  class AdminOrderService {
+    + ListOrdersAsync(filters, page) : PagedResultDTO
+    + ConfirmPaymentAsync(orderId)
+    + CancelOrderAsync(orderId)
+  }
+
+  class AdminGiftRuleService {
+    + CreateAsync / UpdateAsync
+    + SetActiveAsync / DeleteAsync
+  }
+
+  class AuditService {
+    + ListAsync(filters, page) : PagedResultDTO
+    + LogAsync(adminUsername, action, entityType, ...)
+  }
+}
+
+package "DTOs Analytics" #FFF8E1 {
+  class AnalyticsDashboardDTO {
+    + Sales : SalesSummaryDTO
+    + BestSellingProducts : List
+    + LowStockProducts : List
+    + LoyalCustomers : List
+    + HighValueCustomers : List
+  }
+
+  class SalesSummaryDTO {
+    + TotalRevenue : decimal
+    + OrderCount : int
+    + AverageOrderValue : decimal
+  }
+}
+
+package "Couche API <<REST>>" #CFD8DC {
+  class AuthController <<API>> {
+    + POST /api/auth/login
+  }
+
+  class AnalyticsController <<API>> {
+    + GET /api/analytics/dashboard
+    + GET /api/analytics/export/csv
+  }
+
+  class AdminProductsController <<API>>
+  class AdminCategoriesController <<API>>
+  class AdminOrdersController <<API>>
+  class AdminGiftRulesController <<API>>
+  class AdminCustomersController <<API>>
+  class AdminAuditLogsController <<API>>
+}
+
+package "Présentation" #E0F2F1 {
+  class AngularAdminApp <<Angular>> {
+    + /login
+    + /admin/dashboard
+    + /admin/products
+    + /admin/gift-rules
+    + /admin/orders
+    + /admin/customers
+    + /admin/audit-logs
+  }
+}
+
+AuthController --> JwtTokenService
+AuthController --> AdminCredentialsOptions
+AnalyticsController --> AnalyticsService
+AdminProductsController --> AdminProductService
+AdminOrdersController --> AdminOrderService
+AdminGiftRulesController --> AdminGiftRuleService
+AdminAuditLogsController --> AuditService
+AdminOrdersController --> AuditService
+
+AdminProductService ..> Product : modifie
+AdminOrderService ..> Order : liste / confirme
+AdminGiftRuleService ..> GiftRule : CRUD
+AdminProductsController ..> AuditService : écrit (via contrôleur)
+AdminOrdersController ..> AuditService : écrit (via contrôleur)
+
+AnalyticsService ..> Order : agrège (hors Pending/Cancelled)
+AnalyticsService --> AnalyticsDashboardDTO
+
+AngularAdminApp ..> AuthController : JWT Bearer
+AngularAdminApp ..> AnalyticsController
+AngularAdminApp ..> AdminProductsController
+AngularAdminApp ..> AdminOrdersController
+
+note right of AuditLog
+  Journal dénormalisé
+  (pas de FK métier)
+end note
+
+note bottom of AnalyticsService
+  Chiffre d'affaires : commandes
+  **Confirmed** et **Shipped** uniquement
+end note
+
+@enduml

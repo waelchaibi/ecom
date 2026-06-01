@@ -1,0 +1,71 @@
+<p class="back-link"><a routerLink="/account/orders">← My orders</a></p>
+
+@if (err) {
+  <div class="alert alert-error">{{ err }}</div>
+}
+@if (msg) {
+  <div class="alert alert-success">{{ msg }}</div>
+}
+
+@if (order) {
+  <div class="page-header">
+    <h1>Order #{{ order.id }}</h1>
+    <p class="lead">
+      <span [class]="statusClass(order.status)">{{ order.status }}</span>
+      · {{ order.createdAt | date: 'medium' }}
+      · Total <strong>{{ order.totalAmount | number: '1.2-2' }}</strong>
+      @if (order.promotionCode) {
+        · Promo <code>{{ order.promotionCode }}</code>
+      }
+    </p>
+  </div>
+
+  @if (order.status === 'Pending') {
+    <div class="pay-box surface-card">
+      <p>Awaiting payment. Simulate payment below (demo — no real card charge).</p>
+      <div class="pay-box__actions">
+        <button type="button" class="btn-primary" (click)="pay()" [disabled]="busy">Pay now (simulate)</button>
+        <button type="button" class="btn-ghost" (click)="cancel()" [disabled]="busy">Cancel order</button>
+      </div>
+    </div>
+  }
+
+  <section class="detail-section surface-card">
+    <h2>Items</h2>
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Qty</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (li of order.orderItems; track li.id) {
+            <tr>
+              <td>{{ li.productName || ('#' + li.productId) }}</td>
+              <td>{{ li.quantity }}</td>
+              <td>{{ li.price | number: '1.2-2' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="detail-section surface-card">
+    <h2>Gifts</h2>
+    @if (order.assignedGifts?.length) {
+      <ul class="gift-list">
+        @for (g of order.assignedGifts!; track g.giftId) {
+          <li>{{ g.giftName }} × {{ g.quantity }}</li>
+        }
+      </ul>
+    } @else if (order.status === 'Pending') {
+      <p class="muted">Gifts are applied when payment is confirmed.</p>
+    } @else {
+      <p class="muted">None on this order.</p>
+    }
+  </section>
+}

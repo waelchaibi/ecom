@@ -1,0 +1,32 @@
+<h1>Categories</h1>
+
+@if (err) {
+  <p class="err">{{ err }}</p>
+}
+
+<form class="row" (ngSubmit)="create()">
+  <input type="text" [(ngModel)]="name" name="name" placeholder="Name" required />
+  <input type="text" [(ngModel)]="description" name="description" placeholder="Description" />
+  <button type="submit">Add</button>
+</form>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Description</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (c of categories; track c.id) {
+      <tr>
+        <td>{{ c.id }}</td>
+        <td>{{ c.name }}</td>
+        <td>{{ c.description }}</td>
+        <td><button type="button" class="ghost" (click)="remove(c.id)">Delete</button></td>
+      </tr>
+    }
+  </tbody>
+</table>

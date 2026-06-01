@@ -1,6 +1,7 @@
 export interface OrderItem {
   id: number;
   productId: number;
+  productName?: string;
   quantity: number;
   price: number;
 }
@@ -15,15 +16,20 @@ export interface OrderGiftSummary {
 export interface Order {
   id: number;
   customerId: number;
+  subtotalAmount?: number;
+  taxAmount?: number;
+  shippingAmount?: number;
   totalAmount: number;
   createdAt: string;
   status: string;
+  promotionCode?: string | null;
   orderItems: OrderItem[];
   assignedGifts?: OrderGiftSummary[];
 }
 
 export interface CreateOrderPayload {
-  customerId: number;
   items: { productId: number; quantity: number }[];
   promotionCode?: string;
+  taxAmount?: number;
+  shippingAmount?: number;
 }

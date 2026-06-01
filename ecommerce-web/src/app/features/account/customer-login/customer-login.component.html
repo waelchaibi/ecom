@@ -1,0 +1,30 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <h1>Welcome back</h1>
+    <p class="hint">Sign in to place orders and track your purchases.</p>
+
+    @if (error) {
+      <div class="alert alert-error">{{ error }}</div>
+    }
+
+    <form (ngSubmit)="submit()">
+      <label class="form-field">
+        <span>Email</span>
+        <input type="email" name="email" [(ngModel)]="email" autocomplete="email" required />
+      </label>
+      <label class="form-field">
+        <span>Password</span>
+        <input type="password" name="password" [(ngModel)]="password" autocomplete="current-password" required />
+      </label>
+      <button type="submit" class="btn-primary btn-block" [disabled]="loading">
+        {{ loading ? 'Signing in…' : 'Sign in' }}
+      </button>
+    </form>
+
+    <p class="auth-links">
+      <a routerLink="/account/register">Create an account</a>
+      ·
+      <a routerLink="/products">Browse products</a>
+    </p>
+  </div>
+</div>

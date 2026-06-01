@@ -1,0 +1,74 @@
+@startuml Use_Case_Sprint1
+' Sprint 1 — Catalogue, panier, commandes (évolutions S1+ incluses)
+
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #FAFAFA
+  BorderColor #455A64
+}
+
+title Diagramme de cas d'utilisation — Sprint 1\n(Catalogue, authentification client, panier, commandes)
+
+actor "Visiteur" as Visitor
+actor "Client\n(boutique)" as Client
+
+rectangle "Catalogue" #E8F5F1 {
+  usecase "Parcourir le catalogue\n(filtres URL)" as UC_Browse
+  usecase "Consulter détail produit" as UC_ProductDetail
+  usecase "Lister les catégories" as UC_Categories
+}
+
+rectangle "Compte client" #E3F2FD {
+  usecase "S'inscrire" as UC_Register
+  usecase "Se connecter (client)" as UC_CustomerLogin
+  usecase "Consulter mon profil" as UC_Profile
+}
+
+rectangle "Panier & commande" #FFF8E1 {
+  usecase "Gérer le panier\n(ajouter / retirer)" as UC_Cart
+  usecase "Passer commande\n(checkout → Pending)" as UC_Checkout
+  usecase "Consulter mes commandes" as UC_MyOrders
+  usecase "Consulter détail\nma commande" as UC_OrderDetail
+  usecase "Annuler commande Pending" as UC_CancelPending
+}
+
+Visitor --> UC_Browse
+Visitor --> UC_ProductDetail
+Visitor --> UC_Categories
+Visitor --> UC_Register
+
+Client --> UC_Browse
+Client --> UC_ProductDetail
+Client --> UC_Categories
+Client --> UC_Register
+Client --> UC_CustomerLogin
+Client --> UC_Cart
+Client --> UC_Checkout
+Client --> UC_MyOrders
+Client --> UC_OrderDetail
+Client --> UC_CancelPending
+
+UC_Checkout ..> UC_CustomerLogin : <<include>>
+UC_Checkout ..> UC_Cart : <<include>>
+UC_Profile ..> UC_CustomerLogin : <<include>>
+UC_MyOrders ..> UC_CustomerLogin : <<include>>
+UC_OrderDetail ..> UC_CustomerLogin : <<include>>
+UC_CancelPending ..> UC_CustomerLogin : <<include>>
+UC_Cart ..> UC_CustomerLogin : <<include>>
+
+note right of UC_Checkout
+  **Évolutions Sprint 1+**
+  • JWT Customer obligatoire
+  • Statut **Pending** à la création
+  • Réservation stock atomique
+  • TVA + livraison sur la commande
+end note
+
+note bottom of UC_Browse
+  Filtre catégorie synchronisé
+  avec l'URL Angular (?categoryId=)
+end note
+
+@enduml

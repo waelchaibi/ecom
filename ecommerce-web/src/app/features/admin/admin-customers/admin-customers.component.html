@@ -1,0 +1,27 @@
+<h1>Customers</h1>
+@if (err) {
+  <p class="err">{{ err }}</p>
+}
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Phone</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (c of customers; track c.id) {
+      <tr>
+        <td>{{ c.id }}</td>
+        <td>{{ c.name }}</td>
+        <td>{{ c.email }}</td>
+        <td>{{ c.phone }}</td>
+        <td><a [routerLink]="['/admin/customers', c.id]">Order history</a></td>
+      </tr>
+    }
+  </tbody>
+</table>

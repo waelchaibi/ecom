@@ -1,0 +1,106 @@
+<div class="page-header">
+  <h1>Your cart</h1>
+  <p class="lead">Review items and complete checkout when you're ready.</p>
+</div>
+
+@if (loading) {
+  <div class="skeleton-grid" aria-hidden="true">
+    @for (i of [1, 2]; track i) {
+      <div class="skeleton-card"></div>
+    }
+  </div>
+}
+
+@if (error) {
+  <div class="alert alert-error">{{ error }}</div>
+}
+
+@if (!loading && cart) {
+  @if (cart.items.length === 0 && !lastOrder) {
+    <div class="empty-state surface-card">
+      <h2>Your cart is empty</h2>
+      <p class="muted">Add something you love from the shop.</p>
+      <a routerLink="/products" class="btn-primary">Browse products</a>
+    </div>
+  }
+
+  @if (cart.items.length) {
+    <div class="page-split cart-layout">
+      <div class="cart-lines surface-card">
+        @for (line of cart.items; track line.productId) {
+          <article class="cart-line">
+            <div class="cart-line__thumb">
+              @if (line.imageUrl) {
+                <img [src]="line.imageUrl" [alt]="line.productName" />
+              } @else {
+                <span>{{ line.productName.charAt(0) }}</span>
+              }
+            </div>
+            <div class="cart-line__info">
+              <h2>{{ line.productName }}</h2>
+              <p class="muted">{{ line.unitPrice | number: '1.2-2' }} each</p>
+            </div>
+            <div class="cart-line__qty">
+              <label class="sr-only">Quantity</label>
+              <input
+                type="number"
+                min="0"
+                [max]="line.stockQuantity"
+                [value]="line.quantity"
+                (change)="setQty(line.productId, +$any($event.target).value)"
+                [disabled]="busy"
+              />
+            </div>
+            <div class="cart-line__total">{{ line.lineTotal | number: '1.2-2' }}</div>
+            <button
+              type="button"
+              class="btn-ghost btn-sm cart-line__remove"
+              (click)="remove(line.productId)"
+              [disabled]="busy"
+            >
+              Remove
+            </button>
+          </article>
+        }
+      </div>
+
+      <aside class="cart-summary surface-card">
+        <h2>Order summary</h2>
+        <dl class="summary-rows">
+          <dt>Subtotal</dt>
+          <dd>{{ cart.subtotal | number: '1.2-2' }}</dd>
+        </dl>
+
+        <form class="checkout-form" (ngSubmit)="checkout()">
+          <label class="form-field">
+            <span>Tax</span>
+            <input type="number" min="0" step="0.01" [(ngModel)]="taxAmount" name="tax" />
+          </label>
+          <label class="form-field">
+            <span>Shipping</span>
+            <input type="number" min="0" step="0.01" [(ngModel)]="shippingAmount" name="ship" />
+          </label>
+          <label class="form-field">
+            <span>Promotion code</span>
+            <input type="text" [(ngModel)]="promotionCode" name="promo" autocomplete="off" placeholder="Optional" />
+          </label>
+          <button type="submit" class="btn-primary btn-block" [disabled]="busy">
+            {{ busy ? 'Placing order…' : 'Checkout' }}
+          </button>
+        </form>
+      </aside>
+    </div>
+  }
+}
+
+@if (message) {
+  <div class="checkout-success surface-card">
+    <div class="alert alert-success">{{ message }}</div>
+    @if (lastOrder?.status === 'Pending') {
+      <button type="button" class="btn-primary" (click)="payLastOrder()" [disabled]="paying">
+        {{ paying ? 'Processing…' : 'Pay now (simulate)' }}
+      </button>
+    }
+    <p><a routerLink="/account/orders">View my orders →</a></p>
+  </div>
+}

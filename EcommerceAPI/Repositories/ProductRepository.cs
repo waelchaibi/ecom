@@ -13,15 +13,20 @@ public class ProductRepository : IProductRepository
         _context = context;
     }
 
-    public async Task<List<Product>> GetAllAsync()
+    public async Task<List<Product>> GetAllAsync(int? categoryId = null)
     {
-        return await _context.Products.ToListAsync();
+        var query = _context.Products
+            .Include(p => p.Category)
+            .AsQueryable();
+
+        if (categoryId.HasValue)
+            query = query.Where(p => p.CategoryId == categoryId.Value);
+
+        return await query.OrderBy(p => p.Name).ToListAsync();
     }
 
-    public async Task<Product?> GetByIdAsync(int id)
-    {
-        return await _context.Products.FindAsync(id);
-    }
+    public async Task<Product?> GetByIdAsync(int id) =>
+        await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
 
     public async Task<Product> CreateAsync(Product product)
     {
@@ -35,6 +40,38 @@ public class ProductRepository : IProductRepository
         _context.Products.Update(product);
         await SaveChangesAsync();
         return product;
+    }
+
+    public async Task DeleteAsync(Product product)
+    {
+        _context.Products.Remove(product);
+        await SaveChangesAsync();
+    }
+
+    public async Task<bool> HasOrderItemsAsync(int productId) =>
+        await _context.OrderItems.AnyAsync(oi => oi.ProductId == productId);
+
+    public async Task<bool> TryDecrementStockAsync(
+        int productId,
+        int quantity,
+        DateTime updatedAtUtc,
+        CancellationToken cancellationToken = default)
+    {
+        var rows = await _context.Database.ExecuteSqlInterpolatedAsync(
+            $@"UPDATE ""Products"" SET ""StockQuantity"" = ""StockQuantity"" - {quantity}, ""UpdatedAt"" = {updatedAtUtc} WHERE ""Id"" = {productId} AND ""StockQuantity"" >= {quantity}",
+            cancellationToken);
+        return rows == 1;
+    }
+
+    public async Task IncrementStockAsync(
+        int productId,
+        int quantity,
+        DateTime updatedAtUtc,
+        CancellationToken cancellationToken = default)
+    {
+        await _context.Database.ExecuteSqlInterpolatedAsync(
+            $@"UPDATE ""Products"" SET ""StockQuantity"" = ""StockQuantity"" + {quantity}, ""UpdatedAt"" = {updatedAtUtc} WHERE ""Id"" = {productId}",
+            cancellationToken);
     }
 
     public async Task SaveChangesAsync()

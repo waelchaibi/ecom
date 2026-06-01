@@ -1,0 +1,122 @@
+<h1>Products</h1>
+@if (msg) {
+  <p class="ok">{{ msg }}</p>
+}
+@if (err) {
+  <p class="err">{{ err }}</p>
+}
+
+<h2>Add product</h2>
+<form class="add-form" (ngSubmit)="createProduct()">
+  <label>
+    Name
+    <input [(ngModel)]="newProduct.name" name="npn" required />
+  </label>
+  <label>
+    Description
+    <input [(ngModel)]="newProduct.description" name="npd" />
+  </label>
+  <label>
+    Category
+    <select [(ngModel)]="newProduct.categoryId" name="npc">
+      <option [ngValue]="null">None</option>
+      @for (c of categories; track c.id) {
+        <option [ngValue]="c.id">{{ c.name }}</option>
+      }
+    </select>
+  </label>
+  <label>
+    Image URL
+    <input type="url" [(ngModel)]="newProduct.imageUrl" name="npi" placeholder="https://…" />
+  </label>
+  <label>
+    Price
+    <input type="number" step="0.01" min="0.01" [(ngModel)]="newProduct.price" name="npp" />
+  </label>
+  <label>
+    Stock
+    <input type="number" min="0" [(ngModel)]="newProduct.stockQuantity" name="nps" />
+  </label>
+  <button type="submit">Create</button>
+</form>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Category</th>
+      <th>Price</th>
+      <th>Stock</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (p of products; track p.id) {
+      <tr>
+        <td>{{ p.id }}</td>
+        <td>
+          @if (editId === p.id) {
+            <input [(ngModel)]="draft.name" name="n{{ p.id }}" />
+          } @else {
+            {{ p.name }}
+          }
+        </td>
+        <td>
+          @if (editId === p.id) {
+            <select [(ngModel)]="draft.categoryId" name="cat{{ p.id }}">
+              <option [ngValue]="null">None</option>
+              @for (c of categories; track c.id) {
+                <option [ngValue]="c.id">{{ c.name }}</option>
+              }
+            </select>
+          } @else {
+            {{ categoryLabel(p) }}
+          }
+        </td>
+        <td>
+          @if (editId === p.id) {
+            <input type="number" step="0.01" [(ngModel)]="draft.price" name="pr{{ p.id }}" />
+          } @else {
+            {{ p.price | number: '1.2-2' }}
+          }
+        </td>
+        <td>
+          @if (editId === p.id) {
+            <input type="number" [(ngModel)]="draft.stockQuantity" name="sq{{ p.id }}" />
+          } @else {
+            {{ p.stockQuantity }}
+          }
+        </td>
+        <td class="acts">
+          @if (editId === p.id) {
+            <button type="button" (click)="save()">Save</button>
+            <button type="button" (click)="cancelEdit()">Cancel</button>
+          } @else {
+            <button type="button" (click)="startEdit(p)">Edit</button>
+            <button type="button" class="danger" (click)="delete(p)">Delete</button>
+          }
+          <div class="stock-row">
+            <input type="number" min="0" [(ngModel)]="stockInput[p.id]" name="st{{ p.id }}" />
+            <button type="button" (click)="applyStock(p)">Set stock</button>
+          </div>
+        </td>
+      </tr>
+      @if (editId === p.id) {
+        <tr class="desc-row">
+          <td colspan="6">
+            <label>
+              Description
+              <textarea [(ngModel)]="draft.description" name="d{{ p.id }}" rows="2"></textarea>
+            </label>
+            <label>
+              Image URL
+              <input type="url" [(ngModel)]="draft.imageUrl" name="img{{ p.id }}" />
+            </label>
+          </td>
+        </tr>
+      }
+    }
+  </tbody>
+</table>
+

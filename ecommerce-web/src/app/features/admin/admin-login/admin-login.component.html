@@ -1,0 +1,32 @@
+<div class="auth-page">
+  <div class="auth-card admin-auth-card">
+    <h1>Admin sign in</h1>
+    <p class="hint">
+      Management console only. Shoppers use <a routerLink="/account/login">customer sign in</a>.
+    </p>
+    <p class="hint small">
+      Dev credentials: <code>appsettings.Development.json</code> → <code>Admin:Username</code> /
+      <code>Admin:Password</code>
+    </p>
+
+    @if (error) {
+      <div class="alert alert-error">{{ error }}</div>
+    }
+
+    <form (ngSubmit)="submit()">
+      <label class="form-field">
+        <span>Username</span>
+        <input name="u" [(ngModel)]="username" autocomplete="username" required />
+      </label>
+      <label class="form-field">
+        <span>Password</span>
+        <input name="p" type="password" [(ngModel)]="password" autocomplete="current-password" required />
+      </label>
+      <button type="submit" class="btn-primary btn-block" [disabled]="loading">
+        {{ loading ? 'Signing in…' : 'Sign in' }}
+      </button>
+    </form>
+
+    <p class="auth-links"><a routerLink="/products">← Back to storefront</a></p>
+  </div>
+</div>

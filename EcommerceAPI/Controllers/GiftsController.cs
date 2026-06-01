@@ -33,13 +33,4 @@ public class GiftsController : ControllerBase
             return NotFound();
         return Ok(gift);
     }
-
-    [HttpPost]
-    [ProducesResponseType(typeof(GiftDTO), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<GiftDTO>> Create([FromBody] CreateGiftDTO dto)
-    {
-        var created = await _giftService.CreateAsync(dto);
-        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-    }
 }

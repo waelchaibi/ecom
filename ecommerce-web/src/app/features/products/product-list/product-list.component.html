@@ -1,34 +1,94 @@
-<h1>Products</h1>
+<section class="shop-hero">
+  <div class="shop-hero__content">
+    <p class="shop-hero__eyebrow">New season</p>
+    <h1>Discover what you love</h1>
+    <p class="shop-hero__lead">
+      Curated tech and accessories with fast checkout and rewards on every order.
+    </p>
+  </div>
+</section>
+
+@if (categories.length) {
+  <div class="chip-row shop-filters">
+    <button
+      type="button"
+      class="chip"
+      [class.active]="categoryId === null"
+      (click)="selectCategory(null)"
+    >
+      All
+    </button>
+    @for (c of categories; track c.id) {
+      <button
+        type="button"
+        class="chip"
+        [class.active]="categoryId === c.id"
+        (click)="selectCategory(c.id)"
+      >
+        {{ c.name }}
+      </button>
+    }
+  </div>
+}
+
+@if (cartMsg) {
+  <div class="alert alert-success">{{ cartMsg }} <a routerLink="/cart">View cart →</a></div>
+}
 
 @if (loading) {
-  <p class="muted">Loading…</p>
+  <div class="skeleton-grid" aria-hidden="true">
+    @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+      <div class="skeleton-card"></div>
+    }
+  </div>
 }
 
 @if (error) {
-  <p class="error">{{ error }}</p>
+  <div class="alert alert-error">{{ error }}</div>
 }
 
 @if (!loading && !error) {
-  <table class="grid">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Price</th>
-        <th>Stock</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (p of products; track p.id) {
-        <tr>
-          <td>{{ p.name }}</td>
-          <td>{{ p.price | number : '1.2-2' }}</td>
-          <td>{{ p.stockQuantity }}</td>
-          <td>
-            <a routerLink="/order" [queryParams]="{ customerId: 1, productId: p.id }">Order</a>
-          </td>
-        </tr>
-      }
-    </tbody>
-  </table>
+  <div class="product-grid">
+    @for (p of products; track p.id) {
+      <article class="product-card surface-card">
+        <div class="product-card__media">
+          @if (p.imageUrl) {
+            <img [src]="p.imageUrl" [alt]="p.name" loading="lazy" />
+          } @else {
+            <div class="product-card__placeholder" aria-hidden="true">{{ p.name.charAt(0) }}</div>
+          }
+          @if (p.categoryName) {
+            <span class="product-card__badge">{{ p.categoryName }}</span>
+          }
+        </div>
+        <div class="product-card__body">
+          <h2>{{ p.name }}</h2>
+          <p class="product-card__desc">{{ p.description }}</p>
+          <div class="product-card__footer">
+            <div class="product-card__price">
+              <span class="amount">{{ p.price | number: '1.2-2' }}</span>
+              <span class="stock" [class.low]="p.stockQuantity < 5">
+                {{ p.stockQuantity > 0 ? p.stockQuantity + ' in stock' : 'Out of stock' }}
+              </span>
+            </div>
+            <div class="product-card__actions">
+              <button
+                type="button"
+                class="btn-primary btn-sm"
+                (click)="addToCart(p)"
+                [disabled]="p.stockQuantity < 1"
+              >
+                Add to cart
+              </button>
+              <a class="btn-ghost btn-sm" routerLink="/order" [queryParams]="{ productId: p.id }">Buy now</a>
+            </div>
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+
+  @if (products.length === 0) {
+    <p class="muted shop-empty">No products in this category yet.</p>
+  }
 }

@@ -9,10 +9,6 @@ export class OrderApiService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiBaseUrl}/orders`;
 
-  getById(id: number): Observable<Order> {
-    return this.http.get<Order>(`${this.base}/${id}`);
-  }
-
   create(payload: CreateOrderPayload): Observable<Order> {
     return this.http.post<Order>(this.base, payload);
   }

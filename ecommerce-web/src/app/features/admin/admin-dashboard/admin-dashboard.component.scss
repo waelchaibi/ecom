@@ -1,0 +1,93 @@
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+button {
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background: #fff;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.err {
+  color: #b00020;
+}
+
+.kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.kpi {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  min-width: 140px;
+  background: #fafafa;
+
+  .label {
+    display: block;
+    font-size: 0.75rem;
+    color: #555;
+  }
+
+  .val {
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+section.wide {
+  grid-column: 1 / -1;
+}
+
+h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  border: 1px solid #e5e5e5;
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+}
+
+th {
+  background: #f5f5f5;
+}

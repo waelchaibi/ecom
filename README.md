@@ -76,7 +76,8 @@ API endpoints:
 - `http://localhost:5069`
 - `https://localhost:7018`
 - Swagger: `https://localhost:7018/swagger`
-- Customers (read-only for storefront): `GET /api/customers`, `GET /api/customers/{id}`
+- Customer: register/login at `/account/register` and `/account/login`; checkout at `/order` (requires sign-in).
+- Admin (JWT): full customer list/detail under `GET /api/admin/customers`, `GET /api/admin/customers/{id}`, `GET /api/admin/customers/{id}/orders`.
 
 ### Frontend
 
@@ -180,7 +181,70 @@ Quick checks:
 1. Run API so migrations apply: `cd EcommerceAPI` then `dotnet run`.
 2. `GET https://localhost:7018/api/gifts` and `GET https://localhost:7018/api/giftrules` — confirm seeded data.
 3. **Amount only:** customer `1`, one line e.g. Laptop ×1 (total above 100) → response `assignedGifts` includes Premium Gift Pack; gift stock decreases.
-4. **Loyalty:** place a first small order for customer `1` (no loyalty gift), then a second order (any total) → Loyalty Mug on the second order if stock available.
+4. **Loyalty:** prior qualifying orders are **Confirmed** or **Shipped** only (not `Pending`/`Cancelled`). Place a first small order for customer `1` (no loyalty gift), then a second order → Loyalty Mug on the second order when rules and stock allow.
 5. **Promotion:** enter promotion code `SPRINT2` on the order form (or send in JSON) → Promo Keychain when other rules also match, gifts are deduplicated by **gift** (same gift only once). Higher **Priority** on `GiftRules` is evaluated first.
 
-Manage data (no admin UI in Sprint 2): `POST /api/gifts`, `POST /api/giftrules`, `PUT /api/giftrules/{id}`.
+## 11) Sprint 3 — admin space, analytics, JWT
+
+### Admin login (development)
+
+- Open `http://localhost:4200/login` for the single sign-in page, or `http://localhost:4200/admin` (redirects to `/login` if not signed in). The old path `/admin/login` redirects to `/login`.
+- API credentials (see `EcommerceAPI/appsettings.Development.json` under `Admin`):
+  - Username: `admin`
+  - Password: `Admin123!`
+- Token is stored in `localStorage` under `ecom_admin_jwt` and sent as `Authorization: Bearer` for `/api/admin/*` and `/api/analytics/*`.
+
+### Backend highlights
+
+- **Auth:** `POST /api/auth/login` — JWT with role `Admin` for protected routes.
+- **Analytics:** `GET /api/analytics/dashboard?lowStockThreshold=10`, `GET /api/analytics/export/csv` (same query param). Revenue metrics exclude `Pending` and `Cancelled` orders.
+- **Admin:** `POST /api/admin/products` (create); `PUT|DELETE|PATCH …/stock` on `api/admin/products/{id}`; `api/admin/gift-rules` (create, update, activate/deactivate, delete); `GET api/admin/orders` (paged), `GET api/admin/orders/{id}`; **`POST api/admin/orders/{id}/confirm-payment`** (Pending → Confirmed, applies gifts); **`POST api/admin/orders/{id}/cancel`** (restores product + gift stock); `GET api/admin/customers`, `GET api/admin/customers/{id}`, `GET api/admin/customers/{id}/orders`; `POST api/admin/gifts` (create catalog gifts).
+- **Customer auth:** `POST /api/auth/customer/register`, `POST /api/auth/customer/login` (JWT role `Customer`); `GET /api/me`, `GET /api/me/orders`, `GET /api/me/orders/{id}`.
+- **Emulated payment (no Stripe):** `POST /api/me/orders/{id}/pay` — customer simulates payment → order **Confirmed**, gifts applied. `POST /api/me/orders/{id}/cancel` for **Pending** orders only.
+- **Storefront:** public `GET /api/products`; **`POST /api/orders`** (customer JWT) creates **Pending** orders. Admin **confirm-payment** still works as a back-office alternative.
+
+### Angular admin UI
+
+After `npm start`, use the **Admin** link in the header (you are sent to `/login` when not signed in) or browse directly to `/login`. Sections: dashboard (KPIs + tables + CSV export), products (category + image URL), categories, gift rules, orders (filters in URL), audit log, customers (with per-customer order history).
+
+### Demo checklist
+
+1. `dotnet run` in `EcommerceAPI`, `npm start` in `ecommerce-web`.
+2. Sign in at `/login` with dev credentials above.
+3. Open **Dashboard** — confirm metrics load; try **Export CSV**.
+4. **Products** — use **Add product** (admin JWT), edit, **Set stock**, delete only when no order lines (409 otherwise). Concurrent checkouts that lose the stock race return **409** with a retry message.
+5. **Gift rules** — toggle active/inactive, create a test rule, optional **Add gift**.
+6. **Orders / emulated payment** — place an order (**Pending**), then click **Pay now (simulate)** on checkout, **My orders**, or order detail — or use **Admin → Confirm payment** as an alternative. Gifts and revenue update after payment. Cancel a **Pending** order from the customer UI to release stock.
+7. **Customers** — open **Order history** for a customer.
+
+### Security note
+
+Change `Jwt:Secret` and `Admin:Password` for any non-local deployment; empty admin password returns `503` from the login endpoint.
+
+## 12) Expansion roadmap (post–Sprint 3)
+
+### Done
+
+| Area | Highlights |
+|------|------------|
+| **Security & orders** | Admin-only sensitive APIs; pending orders; atomic stock; admin confirm/cancel; analytics excludes pending/cancelled |
+| **Customer accounts** | Register/login JWT; `GET /api/me`, my orders; checkout requires customer auth |
+| **Emulated payment** | `POST /api/me/orders/{id}/pay` (no Stripe); gifts on confirm |
+| **Catalog & cart** | Categories, product `imageUrl`, server cart (`/api/me/cart`), tax/shipping on orders, storefront category filter |
+| **Admin** | Order list filters (status, customer search/ID, date range); categories CRUD; products with category + image URL; **audit log** API + UI |
+| **Hardening & ops** | `AuditLogs` table; rate limits on auth/orders/pay; optional `AdminSecurity:AllowedIps`; `GET /health`; `X-Correlation-ID`; JSON logging (Development) |
+
+### API additions (recent)
+
+- `GET /api/admin/audit-logs` — paged audit entries (`action`, `entityType`, `fromUtc`, `toUtc`)
+- `GET /api/admin/orders` — filters: `status`, `customerSearch`, `customerId`, `fromUtc`, `toUtc`
+- Storefront: `GET /api/categories`, `GET /api/products?categoryId=`, cart under `/api/me/cart`
+
+### Still open (suggested next)
+
+1. **Payments** — real PSP (Stripe/webhooks) if needed beyond simulate.
+2. **Catalog** — image upload (not just URL), product search/pagination on storefront.
+3. **Cart** — guest cart / merge on login.
+4. **Customer** — password reset, email notifications.
+5. **Production** — rotate secrets, CORS, disable Swagger, automated tests.
+6. **Analytics** — date-range filters on admin dashboard (orders already support ranges).

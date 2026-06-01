@@ -1,0 +1,67 @@
+@startuml Sequence_S1_02_Customer_Auth
+' US-S1-02 : Inscription / connexion client + profil
+
+title US-S1-02 — Authentification client et profil
+
+actor "Client\n(Angular)" as UI
+participant "CustomerAuthController\n/api/auth/customer" as AuthCtrl
+participant "MeController\nGET /api/me" as MeCtrl
+participant "CustomerAuthService" as AuthSvc
+participant "JwtTokenService" as Jwt
+database "PostgreSQL\n(EF Core)" as DB
+
+== Inscription ==
+
+UI -> AuthCtrl : POST /api/auth/customer/register\n{ name, email, phone, password }
+activate AuthCtrl
+AuthCtrl -> AuthSvc : RegisterAsync(dto)
+activate AuthSvc
+AuthSvc -> DB : SELECT Customer BY email
+alt email déjà utilisé
+  AuthSvc --> AuthCtrl : 409 Conflict
+  AuthCtrl --> UI : erreur
+else nouveau client
+  AuthSvc -> DB : INSERT Customer\n(PasswordHash = BCrypt)
+  AuthSvc -> Jwt : CreateCustomerToken(customerId, email)
+  Jwt --> AuthSvc : JWT (role Customer)
+  AuthSvc --> AuthCtrl : CustomerAuthResponseDTO\n{ token, customerId }
+  AuthCtrl --> UI : 200
+  UI -> UI : Stocke JWT\n(localStorage)
+end
+deactivate AuthSvc
+deactivate AuthCtrl
+
+== Connexion ==
+
+UI -> AuthCtrl : POST /api/auth/customer/login\n{ email, password }
+activate AuthCtrl
+AuthCtrl -> AuthSvc : LoginAsync(dto)
+AuthSvc -> DB : SELECT Customer BY email
+alt identifiants invalides
+  AuthSvc --> AuthCtrl : 401 Unauthorized
+  AuthCtrl --> UI : erreur
+else OK
+  AuthSvc -> AuthSvc : Vérifie PasswordHash
+  AuthSvc -> Jwt : CreateCustomerToken(...)
+  AuthSvc --> AuthCtrl : CustomerAuthResponseDTO
+  AuthCtrl --> UI : 200 + token
+end
+deactivate AuthCtrl
+
+== Profil (JWT requis) ==
+
+UI -> MeCtrl : GET /api/me\nAuthorization: Bearer {token}
+activate MeCtrl
+MeCtrl -> MeCtrl : User.GetCustomerId()\n(claim JWT)
+MeCtrl -> AuthSvc : GetProfileAsync(customerId)
+AuthSvc -> DB : SELECT Customer
+AuthSvc --> MeCtrl : CustomerProfileDTO
+MeCtrl --> UI : 200 profil
+deactivate MeCtrl
+
+note over UI, Jwt
+  Intercepteur Angular ajoute le Bearer
+  sur /api/me/* et /api/me/cart/*
+end note
+
+@enduml

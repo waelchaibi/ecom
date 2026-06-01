@@ -1,0 +1,209 @@
+@startuml EcommerceAPI_Domain_Class_Diagram
+' Diagramme de classes — domaine persistant (EF Core / PostgreSQL)
+' Projet: EcommerceAPI — Models/
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam packageStyle rectangle
+
+title Diagramme de classes — Domaine E-commerce (EcommerceAPI.Models)
+
+package "Catalogue" #E8F5F1 {
+  class Category {
+    + Id : int <<PK>>
+    + Name : string {unique}
+    + Description : string?
+    --
+    + Products : ICollection<Product>
+  }
+
+  class Product {
+    + Id : int <<PK>>
+    + Name : string
+    + Description : string
+    + Price : decimal(10,2)
+    + StockQuantity : int
+    + CategoryId : int? <<FK>>
+    + ImageUrl : string?
+    + CreatedAt : DateTime
+    + UpdatedAt : DateTime
+    --
+    + Category : Category?
+    + OrderItems : ICollection<OrderItem>
+  }
+}
+
+package "Client & Panier" #E3F2FD {
+  class Customer {
+    + Id : int <<PK>>
+    + Name : string
+    + Email : string {unique}
+    + Phone : string
+    + PasswordHash : string?
+    + CreatedAt : DateTime
+    --
+    + Orders : ICollection<Order>
+  }
+
+  class Cart {
+    + Id : int <<PK>>
+    + CustomerId : int <<FK>> {unique}
+    + UpdatedAt : DateTime
+    --
+    + Customer : Customer?
+    + Items : ICollection<CartItem>
+  }
+
+  class CartItem {
+    + Id : int <<PK>>
+    + CartId : int <<FK>>
+    + ProductId : int <<FK>>
+    + Quantity : int
+    --
+    + Cart : Cart?
+    + Product : Product?
+  }
+}
+
+package "Commande" #FFF8E1 {
+  class Order {
+    + Id : int <<PK>>
+    + CustomerId : int <<FK>>
+    + SubtotalAmount : decimal(10,2)
+    + TaxAmount : decimal(10,2)
+    + ShippingAmount : decimal(10,2)
+    + TotalAmount : decimal(10,2)
+    + CreatedAt : DateTime
+    + Status : string
+    + PromotionCode : string?
+    --
+    + Customer : Customer?
+    + OrderItems : ICollection<OrderItem>
+    + OrderGifts : ICollection<OrderGift>
+  }
+
+  class OrderItem {
+    + Id : int <<PK>>
+    + OrderId : int <<FK>>
+    + ProductId : int <<FK>>
+    + Quantity : int
+    + Price : decimal(10,2)
+    + CreatedAt : DateTime
+    --
+    + Order : Order?
+    + Product : Product?
+  }
+}
+
+package "Promotions (Cadeaux)" #FCE4EC {
+  enum GiftRuleType {
+    Amount = 0
+    Loyalty = 1
+    Promotion = 2
+  }
+
+  class Gift {
+    + Id : int <<PK>>
+    + Name : string
+    + Description : string
+    + StockQuantity : int
+    --
+    + GiftRules : ICollection<GiftRule>
+    + OrderGifts : ICollection<OrderGift>
+  }
+
+  class GiftRule {
+    + Id : int <<PK>>
+    + RuleType : GiftRuleType
+    + ConditionValue : string
+    + GiftId : int <<FK>>
+    + IsActive : bool
+    + Priority : int
+    --
+    + Gift : Gift?
+  }
+
+  class OrderGift {
+    + Id : int <<PK>>
+    + OrderId : int <<FK>>
+    + GiftId : int <<FK>>
+    + GiftRuleId : int <<FK>>
+    + Quantity : int
+    --
+    + Order : Order?
+    + Gift : Gift?
+    + GiftRule : GiftRule?
+  }
+}
+
+package "Administration" #ECEFF1 {
+  class AuditLog {
+    + Id : int <<PK>>
+    + AdminUsername : string
+    + Action : string
+    + EntityType : string
+    + EntityId : int?
+    + Details : string?
+    + CreatedAt : DateTime
+  }
+}
+
+package "Constantes (hors BDD)" #F5F5F5 {
+  class OrderStatuses <<utility>> {
+    {static} + Pending : string
+    {static} + Confirmed : string
+    {static} + Shipped : string
+    {static} + Cancelled : string
+  }
+
+  class OrderStatusHelper <<utility>> {
+    {static} + CountsTowardLoyaltyHistory(status) : bool
+    {static} + CountsTowardRevenue(status) : bool
+  }
+
+  class AuthRoles <<utility>> {
+    {static} + Admin : string
+    {static} + Customer : string
+  }
+}
+
+' --- Associations catalogue ---
+Category "1" o-- "0..*" Product : contient >
+
+' --- Client / panier ---
+Customer "1" --> "0..*" Order : passe >
+Customer "1" o-- "0..1" Cart : possède >
+Cart "1" *-- "0..*" CartItem : contient >
+Product "1" <-- "0..*" CartItem : référence
+
+' --- Commande ---
+Customer "1" --> "0..*" Order
+Order "1" *-- "1..*" OrderItem : lignes >
+Product "1" <-- "0..*" OrderItem : vendu dans >
+
+' --- Cadeaux ---
+Gift "1" o-- "0..*" GiftRule : règles >
+GiftRule --> GiftRuleType : utilise
+Order "1" o-- "0..*" OrderGift : reçoit >
+Gift "1" <-- "0..*" OrderGift
+GiftRule "1" <-- "0..*" OrderGift : déclenchée par
+
+Order ..> OrderStatuses : Status
+note right of Order
+  **Cycle de vie**
+  Pending → création + réservation stock
+  Confirmed → paiement + cadeaux
+  Shipped / Cancelled
+end note
+
+note bottom of CartItem
+  Contrainte unique (CartId, ProductId)
+end note
+
+note bottom of AuditLog
+  Pas de FK vers le domaine métier
+  (journal dénormalisé)
+end note
+
+@enduml

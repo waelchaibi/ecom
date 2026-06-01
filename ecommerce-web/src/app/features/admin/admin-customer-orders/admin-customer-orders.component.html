@@ -1,0 +1,28 @@
+<p><a routerLink="/admin/customers">← Customers</a></p>
+<h1>Customer #{{ customerId }} — orders</h1>
+@if (err) {
+  <p class="err">{{ err }}</p>
+}
+
+<table>
+  <thead>
+    <tr>
+      <th>Order</th>
+      <th>Total</th>
+      <th>Status</th>
+      <th>Created</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (o of orders; track o.id) {
+      <tr>
+        <td>{{ o.id }}</td>
+        <td>{{ o.totalAmount | number: '1.2-2' }}</td>
+        <td>{{ o.status }}</td>
+        <td>{{ o.createdAt | date: 'short' }}</td>
+        <td><a [routerLink]="['/admin/orders', o.id]">Details</a></td>
+      </tr>
+    }
+  </tbody>
+</table>

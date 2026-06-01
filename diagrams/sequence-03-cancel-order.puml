@@ -1,0 +1,49 @@
+@startuml Sequence_03_Cancel_Order
+' Séquence : annulation commande Pending (client) — restitution stock
+
+title Séquence 3 — Annulation d'une commande Pending (client)
+
+actor "Client\n(Angular)" as UI
+participant "MeController\n/api/me/orders/{id}/cancel" as MeCtrl
+participant "OrderService" as OrderSvc
+participant "ProductRepository" as ProdRepo
+participant "GiftRepository" as GiftRepo
+database "PostgreSQL\n(EF Core)" as DB
+
+UI -> MeCtrl : POST /api/me/orders/{id}/cancel\n[JWT Customer]
+activate MeCtrl
+
+MeCtrl -> OrderSvc : CancelOrderAsCustomerAsync(customerId, orderId)
+activate OrderSvc
+
+OrderSvc -> DB : SELECT Order (ownership check)
+
+alt Status != Pending
+  OrderSvc --> MeCtrl : 409\n(seul Pending annulable en ligne)
+  MeCtrl --> UI : erreur
+else Status == Pending
+
+  OrderSvc -> OrderSvc : CancelOrderAsync(orderId)
+  OrderSvc -> DB : BEGIN TRANSACTION
+
+  loop chaque OrderItem
+    OrderSvc -> ProdRepo : IncrementStockAsync(productId, quantity)
+    ProdRepo -> DB : UPDATE Products StockQuantity += qty
+  end
+
+  note right of OrderSvc
+    Restitution cadeaux uniquement si
+    Status était Confirmed/Shipped
+    (non applicable ici en Pending)
+  end note
+
+  OrderSvc -> DB : UPDATE Order Status = Cancelled
+  OrderSvc -> DB : COMMIT
+  OrderSvc --> MeCtrl : OrderDTO
+end
+
+deactivate OrderSvc
+MeCtrl --> UI : 200 OrderDTO
+deactivate MeCtrl
+
+@enduml

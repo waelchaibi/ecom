@@ -1,10 +1,41 @@
-<header class="top">
-  <span class="brand">E‑commerce MVP</span>
-  <nav>
-    <a routerLink="/products" routerLinkActive="active">Products</a>
-    <a routerLink="/order" routerLinkActive="active">Place order</a>
-  </nav>
+<header class="store-header">
+  <div class="store-header__inner">
+    <a routerLink="/products" class="store-brand">
+      <span class="store-brand__mark">S</span>
+      <span class="store-brand__text">
+        <strong>Shayma</strong>
+        <small>Curated store</small>
+      </span>
+    </a>
+    <nav class="store-nav">
+      <a routerLink="/products" routerLinkActive="active">Shop</a>
+      @if (customerAuth.isLoggedIn()) {
+        <a routerLink="/cart" routerLinkActive="active">Cart</a>
+        <a routerLink="/account/orders" routerLinkActive="active">Orders</a>
+        <a routerLink="/order" routerLinkActive="active" class="nav-cta">Checkout</a>
+        <button type="button" class="nav-btn" (click)="customerLogout()">Sign out</button>
+      } @else {
+        <a routerLink="/account/login" routerLinkActive="active">Sign in</a>
+        <a routerLink="/account/register" routerLinkActive="active" class="nav-cta">Join</a>
+      }
+      <a routerLink="/login" class="nav-btn">Admin</a>
+    </nav>
+  </div>
 </header>
-<main class="page">
+
+<main class="store-main">
   <router-outlet />
 </main>
+
+<footer class="store-footer">
+  <div class="store-footer__inner">
+    <div>
+      <p class="footer-brand">Shayma</p>
+      <p class="footer-muted">Thoughtfully selected products. Secure checkout.</p>
+    </div>
+    <div>
+      <p><a routerLink="/products">Shop all</a></p>
+      <p><a routerLink="/account/login">Customer account</a></p>
+    </div>
+  </div>
+</footer>

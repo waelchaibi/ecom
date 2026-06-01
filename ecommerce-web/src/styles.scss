@@ -1,18 +1,4 @@
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
-  color: #1a1a1a;
-  background: #fff;
-}
-
+@use 'styles/tokens';
+@use 'styles/base';
+@use 'styles/components';
+@use 'styles/layout';

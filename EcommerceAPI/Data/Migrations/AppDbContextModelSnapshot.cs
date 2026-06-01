@@ -22,6 +22,140 @@ namespace EcommerceAPI.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("EcommerceAPI.Models.AuditLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("AdminUsername")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<int?>("EntityId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.ToTable("AuditLogs");
+                });
+
+            modelBuilder.Entity("EcommerceAPI.Models.Cart", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId")
+                        .IsUnique();
+
+                    b.ToTable("Carts");
+                });
+
+            modelBuilder.Entity("EcommerceAPI.Models.CartItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CartId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("CartId", "ProductId")
+                        .IsUnique();
+
+                    b.ToTable("CartItems");
+                });
+
+            modelBuilder.Entity("EcommerceAPI.Models.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Categories");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Laptops and desktops",
+                            Name = "Computers"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Mice, keyboards, monitors",
+                            Name = "Peripherals"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Description = "Cables and adapters",
+                            Name = "Accessories"
+                        });
+                });
+
             modelBuilder.Entity("EcommerceAPI.Models.Customer", b =>
                 {
                     b.Property<int>("Id")
@@ -43,6 +177,10 @@ namespace EcommerceAPI.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("PasswordHash")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -50,13 +188,16 @@ namespace EcommerceAPI.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.ToTable("Customers");
 
                     b.HasData(
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 5, 11, 19, 26, 52, 403, DateTimeKind.Utc).AddTicks(1362),
+                            CreatedAt = new DateTime(2026, 5, 16, 10, 46, 20, 433, DateTimeKind.Utc).AddTicks(6608),
                             Email = "ahmed@example.com",
                             Name = "Ahmed Hassan",
                             Phone = "+966501234567"
@@ -64,7 +205,7 @@ namespace EcommerceAPI.Data.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 5, 11, 19, 26, 52, 403, DateTimeKind.Utc).AddTicks(1369),
+                            CreatedAt = new DateTime(2026, 5, 16, 10, 46, 20, 433, DateTimeKind.Utc).AddTicks(6610),
                             Email = "fatima@example.com",
                             Name = "Fatima Al-Rashid",
                             Phone = "+966509876543"
@@ -72,7 +213,7 @@ namespace EcommerceAPI.Data.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 5, 11, 19, 26, 52, 403, DateTimeKind.Utc).AddTicks(1370),
+                            CreatedAt = new DateTime(2026, 5, 16, 10, 46, 20, 433, DateTimeKind.Utc).AddTicks(6611),
                             Email = "mohammed@example.com",
                             Name = "Mohammed Ali",
                             Phone = "+966551234567"
@@ -151,10 +292,26 @@ namespace EcommerceAPI.Data.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("PromotionCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal>("ShippingAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<decimal>("SubtotalAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
 
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(10, 2)
@@ -239,11 +396,18 @@ namespace EcommerceAPI.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
@@ -264,59 +428,101 @@ namespace EcommerceAPI.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
                     b.ToTable("Products");
 
                     b.HasData(
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 5, 11, 19, 26, 52, 403, DateTimeKind.Utc).AddTicks(1046),
+                            CategoryId = 1,
+                            CreatedAt = new DateTime(2026, 5, 16, 10, 46, 20, 433, DateTimeKind.Utc).AddTicks(6579),
                             Description = "High-performance laptop",
+                            ImageUrl = "https://picsum.photos/seed/laptop/400/300",
                             Name = "Laptop",
                             Price = 999.99m,
                             StockQuantity = 10,
-                            UpdatedAt = new DateTime(2026, 5, 11, 19, 26, 52, 403, DateTimeKind.Utc).AddTicks(1053)
+                            UpdatedAt = new DateTime(2026, 5, 16, 10, 46, 20, 433, DateTimeKind.Utc).AddTicks(6582)
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 5, 11, 19, 26, 52, 403, DateTimeKind.Utc).AddTicks(1060),
+                            CategoryId = 2,
+                            CreatedAt = new DateTime(2026, 5, 16, 10, 46, 20, 433, DateTimeKind.Utc).AddTicks(6589),
                             Description = "Wireless mouse",
+                            ImageUrl = "https://picsum.photos/seed/mouse/400/300",
                             Name = "Mouse",
                             Price = 29.99m,
                             StockQuantity = 50,
-                            UpdatedAt = new DateTime(2026, 5, 11, 19, 26, 52, 403, DateTimeKind.Utc).AddTicks(1060)
+                            UpdatedAt = new DateTime(2026, 5, 16, 10, 46, 20, 433, DateTimeKind.Utc).AddTicks(6589)
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 5, 11, 19, 26, 52, 403, DateTimeKind.Utc).AddTicks(1061),
+                            CategoryId = 2,
+                            CreatedAt = new DateTime(2026, 5, 16, 10, 46, 20, 433, DateTimeKind.Utc).AddTicks(6591),
                             Description = "Mechanical keyboard",
+                            ImageUrl = "https://picsum.photos/seed/keyboard/400/300",
                             Name = "Keyboard",
                             Price = 79.99m,
                             StockQuantity = 30,
-                            UpdatedAt = new DateTime(2026, 5, 11, 19, 26, 52, 403, DateTimeKind.Utc).AddTicks(1062)
+                            UpdatedAt = new DateTime(2026, 5, 16, 10, 46, 20, 433, DateTimeKind.Utc).AddTicks(6591)
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2026, 5, 11, 19, 26, 52, 403, DateTimeKind.Utc).AddTicks(1063),
+                            CategoryId = 2,
+                            CreatedAt = new DateTime(2026, 5, 16, 10, 46, 20, 433, DateTimeKind.Utc).AddTicks(6592),
                             Description = "27-inch 4K monitor",
+                            ImageUrl = "https://picsum.photos/seed/monitor/400/300",
                             Name = "Monitor",
                             Price = 299.99m,
                             StockQuantity = 15,
-                            UpdatedAt = new DateTime(2026, 5, 11, 19, 26, 52, 403, DateTimeKind.Utc).AddTicks(1063)
+                            UpdatedAt = new DateTime(2026, 5, 16, 10, 46, 20, 433, DateTimeKind.Utc).AddTicks(6593)
                         },
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2026, 5, 11, 19, 26, 52, 403, DateTimeKind.Utc).AddTicks(1064),
+                            CategoryId = 3,
+                            CreatedAt = new DateTime(2026, 5, 16, 10, 46, 20, 433, DateTimeKind.Utc).AddTicks(6593),
                             Description = "High-speed USB-C cable",
+                            ImageUrl = "https://picsum.photos/seed/cable/400/300",
                             Name = "USB-C Cable",
                             Price = 14.99m,
                             StockQuantity = 100,
-                            UpdatedAt = new DateTime(2026, 5, 11, 19, 26, 52, 403, DateTimeKind.Utc).AddTicks(1064)
+                            UpdatedAt = new DateTime(2026, 5, 16, 10, 46, 20, 433, DateTimeKind.Utc).AddTicks(6594)
                         });
+                });
+
+            modelBuilder.Entity("EcommerceAPI.Models.Cart", b =>
+                {
+                    b.HasOne("EcommerceAPI.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("EcommerceAPI.Models.CartItem", b =>
+                {
+                    b.HasOne("EcommerceAPI.Models.Cart", "Cart")
+                        .WithMany("Items")
+                        .HasForeignKey("CartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EcommerceAPI.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cart");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("EcommerceAPI.Models.GiftRule", b =>
@@ -385,6 +591,26 @@ namespace EcommerceAPI.Data.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("EcommerceAPI.Models.Product", b =>
+                {
+                    b.HasOne("EcommerceAPI.Models.Category", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("EcommerceAPI.Models.Cart", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("EcommerceAPI.Models.Category", b =>
+                {
+                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("EcommerceAPI.Models.Customer", b =>

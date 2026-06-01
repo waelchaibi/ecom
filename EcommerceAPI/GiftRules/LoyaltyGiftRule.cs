@@ -15,9 +15,9 @@ public sealed class LoyaltyGiftRule : IGiftRule
 
     public GiftRule SourceRule => _rule;
 
-    /// <summary>Applies when the customer has strictly more than the configured number of completed prior orders.</summary>
+    /// <summary>Applies when the customer has strictly more than the configured number of prior qualifying orders (see <see cref="OrderStatusHelper.CountsTowardLoyaltyHistory"/>).</summary>
     public bool IsApplicable(GiftRuleEvaluationContext context) =>
-        context.PriorCompletedOrderCount > _minimumPriorOrders;
+        context.PriorQualifyingOrderCount > _minimumPriorOrders;
 
     public Gift Apply() => _rule.Gift!;
 }

@@ -1,16 +1,18 @@
 using EcommerceAPI.DTOs;
 using EcommerceAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EcommerceAPI.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-public class CustomersController : ControllerBase
+[Route("api/admin/customers")]
+[Authorize(Roles = "Admin")]
+public class AdminCustomersController : ControllerBase
 {
     private readonly ICustomerService _customerService;
 
-    public CustomersController(ICustomerService customerService)
+    public AdminCustomersController(ICustomerService customerService)
     {
         _customerService = customerService;
     }
@@ -19,8 +21,7 @@ public class CustomersController : ControllerBase
     [ProducesResponseType(typeof(IReadOnlyList<CustomerDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<CustomerDTO>>> GetAll()
     {
-        var list = await _customerService.GetAllAsync();
-        return Ok(list);
+        return Ok(await _customerService.GetAllAsync());
     }
 
     [HttpGet("{id:int}")]
@@ -32,5 +33,12 @@ public class CustomersController : ControllerBase
         if (customer is null)
             return NotFound();
         return Ok(customer);
+    }
+
+    [HttpGet("{id:int}/orders")]
+    [ProducesResponseType(typeof(IReadOnlyList<OrderDTO>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<OrderDTO>>> GetOrders(int id)
+    {
+        return Ok(await _customerService.GetOrdersForCustomerAsync(id));
     }
 }

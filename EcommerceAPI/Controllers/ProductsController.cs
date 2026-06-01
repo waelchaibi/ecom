@@ -17,9 +17,9 @@ public class ProductsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<ProductDTO>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<ProductDTO>>> GetAll()
+    public async Task<ActionResult<IReadOnlyList<ProductDTO>>> GetAll([FromQuery] int? categoryId)
     {
-        var list = await _productService.GetAllProductsAsync();
+        var list = await _productService.GetAllProductsAsync(categoryId);
         return Ok(list);
     }
 
@@ -32,14 +32,5 @@ public class ProductsController : ControllerBase
         if (product is null)
             return NotFound();
         return Ok(product);
-    }
-
-    [HttpPost]
-    [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ProductDTO>> Create([FromBody] CreateProductDTO dto)
-    {
-        var created = await _productService.CreateProductAsync(dto);
-        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 }

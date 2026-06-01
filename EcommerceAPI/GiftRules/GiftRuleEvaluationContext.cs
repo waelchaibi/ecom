@@ -10,17 +10,18 @@ public sealed class GiftRuleEvaluationContext
     public GiftRuleEvaluationContext(
         Order order,
         Customer customer,
-        int priorCompletedOrderCount,
+        int priorQualifyingOrderCount,
         string? promotionCode)
     {
         Order = order;
         Customer = customer;
-        PriorCompletedOrderCount = priorCompletedOrderCount;
+        PriorQualifyingOrderCount = priorQualifyingOrderCount;
         PromotionCode = promotionCode;
     }
 
     public Order Order { get; }
     public Customer Customer { get; }
-    public int PriorCompletedOrderCount { get; }
+    /// <summary>Number of prior orders that count toward loyalty (confirmed/shipped), excluding cancelled/pending.</summary>
+    public int PriorQualifyingOrderCount { get; }
     public string? PromotionCode { get; }
 }

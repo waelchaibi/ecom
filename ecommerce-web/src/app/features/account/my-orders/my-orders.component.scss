@@ -1,0 +1,57 @@
+.order-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.order-card {
+  padding: 1.25rem 1.35rem;
+
+  &__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  &__id {
+    display: block;
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+
+  &__date {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  &__total {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+    font-family: var(--font-display);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
+.orders-footer {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+
+  .btn-primary {
+    margin-top: 1rem;
+  }
+}

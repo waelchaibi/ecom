@@ -1,0 +1,130 @@
+<div class="head">
+  <h1>Analytics dashboard</h1>
+  <div class="actions">
+    <button type="button" (click)="load()">Refresh</button>
+    <button type="button" (click)="exportCsv()" [disabled]="csvBusy">{{ csvBusy ? 'Exporting…' : 'Export CSV' }}</button>
+  </div>
+</div>
+
+@if (err) {
+  <p class="err">{{ err }}</p>
+}
+
+@if (data) {
+  <section class="kpis">
+    <div class="kpi">
+      <span class="label">Total revenue</span>
+      <span class="val">{{ data.sales.totalRevenue | number: '1.2-2' }}</span>
+    </div>
+    <div class="kpi">
+      <span class="label">Orders</span>
+      <span class="val">{{ data.sales.orderCount }}</span>
+    </div>
+    <div class="kpi">
+      <span class="label">Average order value</span>
+      <span class="val">{{ data.sales.averageOrderValue | number: '1.2-2' }}</span>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section>
+      <h2>Best-selling products</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Qty sold</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of data.bestSellingProducts; track p.productId) {
+            <tr>
+              <td>{{ p.productName }}</td>
+              <td>{{ p.quantitySold }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Low stock (≤ threshold)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of data.lowStockProducts; track p.productId) {
+            <tr>
+              <td>{{ p.productName }}</td>
+              <td>{{ p.stockQuantity }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Loyal customers (by orders)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Orders</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of data.topCustomersByOrders; track c.customerId) {
+            <tr>
+              <td>{{ c.customerName }}</td>
+              <td>{{ c.orderCount }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Top customers (by revenue)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Total spent</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of data.topCustomersByRevenue; track c.customerId) {
+            <tr>
+              <td>{{ c.customerName }}</td>
+              <td>{{ c.totalPurchaseValue | number: '1.2-2' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section class="wide">
+      <h2>Gift performance</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Gift</th>
+            <th>Times assigned</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (g of data.mostAssignedGifts; track g.giftId) {
+            <tr>
+              <td>{{ g.giftName }}</td>
+              <td>{{ g.timesAssigned }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  </div>
+}

@@ -1,84 +1,98 @@
-<h1>Create order</h1>
+<div class="page-header">
+  <h1>Checkout</h1>
+  @if (auth.profile(); as p) {
+    <p class="lead">Ordering as <strong>{{ p.name }}</strong> · {{ p.email }}</p>
+  }
+</div>
 
-@if (error && !(products.length && customers.length)) {
-  <p class="error">{{ error }}</p>
+@if (error && !products.length) {
+  <div class="alert alert-error">{{ error }}</div>
 }
 
-@if (products.length && customers.length) {
-  <form (ngSubmit)="submit()" class="form">
-    <label class="field">
-      <span>Customer</span>
-      <select
-        name="customerId"
-        [(ngModel)]="customerId"
-        (ngModelChange)="onCustomerChange()"
-        required
-      >
-        @for (c of customers; track c.id) {
-          <option [ngValue]="c.id">{{ c.name }} — {{ c.email }}</option>
+@if (products.length) {
+  <div class="page-split checkout-layout">
+    <form (ngSubmit)="submit()" class="checkout-form surface-card">
+      <h2>Order details</h2>
+
+      <label class="form-field">
+        <span>Tax</span>
+        <input type="number" min="0" step="0.01" name="tax" [(ngModel)]="taxAmount" />
+      </label>
+      <label class="form-field">
+        <span>Shipping</span>
+        <input type="number" min="0" step="0.01" name="shipping" [(ngModel)]="shippingAmount" />
+      </label>
+      <label class="form-field">
+        <span>Promotion code (optional)</span>
+        <input
+          type="text"
+          name="promotionCode"
+          [(ngModel)]="promotionCode"
+          placeholder="e.g. SPRINT2"
+          autocomplete="off"
+        />
+      </label>
+
+      <fieldset class="line-items">
+        <legend>Items</legend>
+        @for (line of lines; track $index; let i = $index) {
+          <div class="line-row">
+            <label class="form-field line-grow">
+              <span>Product</span>
+              <select name="product-{{ i }}" [(ngModel)]="line.productId" (ngModelChange)="onLineChange()">
+                <option [ngValue]="null">Select…</option>
+                @for (p of products; track p.id) {
+                  <option [ngValue]="p.id">{{ p.name }} ({{ p.stockQuantity }} in stock)</option>
+                }
+              </select>
+            </label>
+            <label class="form-field line-qty">
+              <span>Qty</span>
+              <input
+                type="number"
+                name="qty-{{ i }}"
+                min="1"
+                [(ngModel)]="line.quantity"
+                (ngModelChange)="onLineChange()"
+              />
+            </label>
+            @if (lines.length > 1) {
+              <button type="button" class="btn-ghost btn-sm line-remove" (click)="removeLine(i)">Remove</button>
+            }
+          </div>
         }
-      </select>
-    </label>
+        <button type="button" class="btn-secondary btn-sm" (click)="addLine()">+ Add item</button>
+      </fieldset>
 
-    <label class="field">
-      <span>Promotion code (optional)</span>
-      <input
-        type="text"
-        name="promotionCode"
-        [(ngModel)]="promotionCode"
-        placeholder="e.g. SPRINT2"
-        autocomplete="off"
-      />
-    </label>
+      <button type="submit" class="btn-primary btn-block" [disabled]="submitting">
+        {{ submitting ? 'Placing order…' : 'Place order' }}
+      </button>
+    </form>
 
-    <fieldset>
-      <legend>Line items</legend>
-      @for (line of lines; track $index; let i = $index) {
-        <div class="line">
-          <label>
-            Product
-            <select
-              name="product-{{ i }}"
-              [(ngModel)]="line.productId"
-              (ngModelChange)="onLineChange()"
-            >
-              <option [ngValue]="null">Select…</option>
-              @for (p of products; track p.id) {
-                <option [ngValue]="p.id">{{ p.name }} ({{ p.stockQuantity }} in stock)</option>
-              }
-            </select>
-          </label>
-          <label>
-            Qty
-            <input
-              type="number"
-              name="qty-{{ i }}"
-              min="1"
-              [(ngModel)]="line.quantity"
-              (ngModelChange)="onLineChange()"
-            />
-          </label>
-          @if (lines.length > 1) {
-            <button type="button" class="btn-ghost" (click)="removeLine(i)">Remove</button>
-          }
-        </div>
-      }
-      <button type="button" class="btn-secondary" (click)="addLine()">Add line</button>
-    </fieldset>
-
-    <button type="submit" class="btn-primary" [disabled]="submitting">
-      {{ submitting ? 'Placing order…' : 'Place order' }}
-    </button>
-  </form>
+    <aside class="checkout-aside surface-card">
+      <h2>Quick tip</h2>
+      <p class="muted">Prefer browsing first? Add items from the shop to your cart for a faster checkout.</p>
+      <a routerLink="/cart" class="btn-secondary btn-block">View cart</a>
+      <a routerLink="/products" class="btn-ghost btn-block">Continue shopping</a>
+    </aside>
+  </div>
 }
 
 @if (message) {
-  <p class="success">{{ message }}</p>
+  <div class="checkout-result surface-card">
+    <div class="alert alert-success">{{ message }}</div>
+    @if (lastOrder?.status === 'Pending') {
+      <button type="button" class="btn-primary" (click)="payLastOrder()" [disabled]="paying">
+        {{ paying ? 'Processing…' : 'Pay now (simulate)' }}
+      </button>
+    }
+    <p><a routerLink="/account/orders">View my orders →</a></p>
+  </div>
 }
 
 @if (lastOrder?.assignedGifts?.length) {
-  <div class="gift-panel">
-    <p class="gift-headline">You received a promotional gift 🎁</p>
+  <div class="gift-panel surface-card">
+    <h2>Promotional gifts</h2>
     <ul class="gift-list">
       @for (g of lastOrder!.assignedGifts!; track g.giftId + '-' + g.giftRuleId) {
         <li>
@@ -91,6 +105,7 @@
     </ul>
   </div>
 }
-@if (error && products.length && customers.length) {
-  <p class="error">{{ error }}</p>
+
+@if (error && products.length) {
+  <div class="alert alert-error">{{ error }}</div>
 }

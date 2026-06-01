@@ -33,6 +33,9 @@ public class GiftRuleService : IGiftRuleService
         if (gift is null)
             throw new ArgumentException($"Gift with ID {dto.GiftId} not found");
 
+        if (dto.IsActive)
+            await EnsureNoConflictingActiveRuleAsync(dto.RuleType, dto.ConditionValue.Trim(), dto.GiftId, excludeRuleId: null);
+
         var entity = new GiftRule
         {
             RuleType = dto.RuleType,
@@ -84,10 +87,58 @@ public class GiftRuleService : IGiftRuleService
         if (dto.Priority.HasValue)
             entity.Priority = dto.Priority.Value;
 
+        if (entity.IsActive)
+            await EnsureNoConflictingActiveRuleAsync(entity.RuleType, entity.ConditionValue, entity.GiftId, excludeRuleId: id);
+
         await _ruleRepository.SaveChangesAsync();
 
         var reloaded = await _ruleRepository.GetByIdWithGiftAsync(id);
         return Map(reloaded!);
+    }
+
+    public async Task<GiftRuleDTO> SetActiveAsync(int id, bool isActive)
+    {
+        if (id <= 0)
+            throw new ArgumentException("Rule ID must be greater than 0");
+
+        var entity = await _ruleRepository.GetByIdWithGiftAsync(id);
+        if (entity is null)
+            throw new ArgumentException($"Gift rule with ID {id} not found");
+
+        entity.IsActive = isActive;
+
+        if (isActive)
+            await EnsureNoConflictingActiveRuleAsync(entity.RuleType, entity.ConditionValue, entity.GiftId, excludeRuleId: id);
+
+        await _ruleRepository.SaveChangesAsync();
+        var reloaded = await _ruleRepository.GetByIdWithGiftAsync(id);
+        return Map(reloaded!);
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        if (id <= 0)
+            throw new ArgumentException("Rule ID must be greater than 0");
+
+        var entity = await _ruleRepository.GetByIdWithGiftAsync(id);
+        if (entity is null)
+            throw new ArgumentException($"Gift rule with ID {id} not found");
+
+        if (await _ruleRepository.HasOrderGiftsAsync(id))
+            throw new InvalidOperationException("Cannot delete a gift rule that has already been applied to orders.");
+
+        await _ruleRepository.DeleteAsync(entity);
+    }
+
+    private async Task EnsureNoConflictingActiveRuleAsync(
+        GiftRuleType ruleType,
+        string conditionValue,
+        int giftId,
+        int? excludeRuleId)
+    {
+        if (await _ruleRepository.HasConflictingActiveRuleAsync(ruleType, conditionValue, giftId, excludeRuleId))
+            throw new InvalidOperationException(
+                "Another active rule already uses the same type, condition, and gift. Deactivate or change it first.");
     }
 
     private static GiftRuleDTO Map(GiftRule r) => new()

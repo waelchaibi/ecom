@@ -1,0 +1,73 @@
+@startuml Sequence_01_Cart_Checkout
+' Séquence : panier → checkout → commande Pending (réservation stock)
+
+title Séquence 1 — Checkout depuis le panier (commande Pending)
+
+actor "Client\n(Angular)" as UI
+participant "MeCartController\n/api/me/cart" as CartCtrl
+participant "CartService" as CartSvc
+participant "OrderService" as OrderSvc
+participant "ProductRepository" as ProdRepo
+database "PostgreSQL\n(EF Core)" as DB
+
+== Ajout au panier (optionnel) ==
+
+UI -> CartCtrl : POST /api/me/cart/items\n{ productId, quantity }
+activate CartCtrl
+CartCtrl -> CartSvc : UpsertItemAsync(customerId, dto)
+activate CartSvc
+CartSvc -> ProdRepo : GetByIdAsync(productId)
+ProdRepo -> DB : SELECT Product
+CartSvc -> DB : GetOrCreate Cart + upsert CartItem
+CartSvc --> CartCtrl : CartDTO
+deactivate CartSvc
+CartCtrl --> UI : 200 CartDTO
+deactivate CartCtrl
+
+== Checkout ==
+
+UI -> CartCtrl : POST /api/me/cart/checkout\n{ taxAmount, shippingAmount, promotionCode? }
+activate CartCtrl
+CartCtrl -> CartSvc : CheckoutAsync(customerId, dto)
+activate CartSvc
+
+CartSvc -> DB : SELECT Cart + CartItems + Products
+CartSvc -> OrderSvc : CreateOrderForCustomerAsync(customerId, orderDto)
+activate OrderSvc
+
+OrderSvc -> DB : BEGIN TRANSACTION
+
+loop pour chaque ligne panier
+  OrderSvc -> ProdRepo : TryDecrementStockAsync(productId, qty)
+  ProdRepo -> DB : UPDATE Products SET StockQuantity -= qty\n(WHERE stock suffisant)
+  alt stock insuffisant
+    ProdRepo --> OrderSvc : false
+    OrderSvc -> DB : ROLLBACK
+    OrderSvc --> CartSvc : 409 InvalidOperationException
+    CartSvc --> CartCtrl : erreur
+    CartCtrl --> UI : 409
+  end
+end
+
+OrderSvc -> DB : INSERT Order (Status=Pending,\nSubtotal, Tax, Shipping, Total,\nPromotionCode)
+OrderSvc -> DB : INSERT OrderItems (Price figé)
+OrderSvc -> DB : COMMIT
+
+OrderSvc --> CartSvc : OrderDTO
+deactivate OrderSvc
+
+CartSvc -> CartSvc : ClearCartAsync(customerId)
+CartSvc -> DB : DELETE CartItems
+CartSvc --> CartCtrl : OrderDTO
+deactivate CartSvc
+
+CartCtrl --> UI : 200 OrderDTO\n(Status = Pending)
+deactivate CartCtrl
+
+note over UI, DB
+  La commande est créée en **Pending**.
+  Les cadeaux (GiftRule) ne sont **pas** encore évalués.
+  Le stock produit est déjà décrementé.
+end note
+
+@enduml

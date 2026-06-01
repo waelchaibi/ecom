@@ -1,0 +1,20 @@
+<div class="admin-shell">
+  <aside class="side">
+    <div class="side-head">
+      <strong>Admin</strong>
+      <button type="button" class="logout" (click)="logout()">Logout</button>
+    </div>
+    <nav>
+      <a routerLink="/admin/dashboard" routerLinkActive="active">Dashboard</a>
+      <a routerLink="/admin/products" routerLinkActive="active">Products</a>
+      <a routerLink="/admin/categories" routerLinkActive="active">Categories</a>
+      <a routerLink="/admin/gift-rules" routerLinkActive="active">Gift rules</a>
+      <a routerLink="/admin/orders" routerLinkActive="active">Orders</a>
+      <a routerLink="/admin/audit-logs" routerLinkActive="active">Audit log</a>
+      <a routerLink="/admin/customers" routerLinkActive="active">Customers</a>
+    </nav>
+  </aside>
+  <div class="main">
+    <router-outlet />
+  </div>
+</div>

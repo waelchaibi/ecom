@@ -1,0 +1,54 @@
+@startuml Sequence_S1_01_Browse_Catalog
+' US-S1-01 : Consulter le catalogue (filtre catégorie dans l'URL)
+
+title US-S1-01 — Parcourir le catalogue produits
+
+actor "Client / Visiteur\n(Angular)" as UI
+participant "ProductsController\nGET /api/products" as ProdCtrl
+participant "CategoriesController\nGET /api/categories" as CatCtrl
+participant "ProductService" as ProdSvc
+participant "CategoryService" as CatSvc
+database "PostgreSQL\n(EF Core)" as DB
+
+== Chargement page catalogue ==
+
+UI -> CatCtrl : GET /api/categories
+activate CatCtrl
+CatCtrl -> CatSvc : GetAllAsync()
+CatSvc -> DB : SELECT Categories
+CatSvc --> CatCtrl : CategoryDTO[]
+CatCtrl --> UI : 200
+deactivate CatCtrl
+
+UI -> UI : Lit query params URL\n(?categoryId=, ?q=)
+
+UI -> ProdCtrl : GET /api/products?categoryId={id}
+activate ProdCtrl
+ProdCtrl -> ProdSvc : GetAllProductsAsync(categoryId)
+ProdSvc -> DB : SELECT Products\n(+ Category si jointure)
+ProdSvc --> ProdCtrl : ProductDTO[]
+ProdCtrl --> UI : 200 liste produits
+deactivate ProdCtrl
+
+opt Détail produit
+  UI -> ProdCtrl : GET /api/products/{id}
+  activate ProdCtrl
+  ProdCtrl -> ProdSvc : GetProductByIdAsync(id)
+  ProdSvc -> DB : SELECT Product
+  alt introuvable
+    ProdSvc --> ProdCtrl : null
+    ProdCtrl --> UI : 404
+  else trouvé
+    ProdSvc --> ProdCtrl : ProductDTO
+    ProdCtrl --> UI : 200
+  end
+  deactivate ProdCtrl
+end
+
+note over UI
+  Filtres synchronisés avec l'URL Angular
+  (categoryId, recherche locale).
+  Route publique — pas de JWT requis.
+end note
+
+@enduml

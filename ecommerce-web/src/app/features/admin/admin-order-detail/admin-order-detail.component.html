@@ -1,0 +1,72 @@
+<p><a routerLink="/admin/orders">← All orders</a></p>
+@if (err) {
+  <p class="err">{{ err }}</p>
+}
+
+@if (order) {
+  <h1>Order #{{ order.id }}</h1>
+  <div class="toolbar">
+    @if (order.status === 'Pending') {
+      <button type="button" (click)="confirm()" [disabled]="busy">Confirm payment</button>
+      <button type="button" class="ghost" (click)="cancel()" [disabled]="busy">Cancel order</button>
+    }
+    @if (order.status === 'Confirmed' || order.status === 'Shipped') {
+      <button type="button" class="ghost" (click)="cancel()" [disabled]="busy">Cancel order</button>
+    }
+  </div>
+  <p class="meta">
+    Customer {{ order.customerId }} · {{ order.status }} · {{ order.createdAt | date: 'medium' }} · Total
+    {{ order.totalAmount | number: '1.2-2' }}
+    @if (order.promotionCode) {
+      · Promo <code>{{ order.promotionCode }}</code>
+    }
+  </p>
+
+  <h2>Line items</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Product ID</th>
+        <th>Qty</th>
+        <th>Unit price</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (li of order.orderItems; track li.id) {
+        <tr>
+          <td>{{ li.productId }}</td>
+          <td>{{ li.quantity }}</td>
+          <td>{{ li.price | number: '1.2-2' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <h2>Assigned gifts</h2>
+  @if (order.assignedGifts?.length) {
+    <table>
+      <thead>
+        <tr>
+          <th>Gift</th>
+          <th>Qty</th>
+          <th>Rule ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (g of order.assignedGifts!; track g.giftId + '-' + g.giftRuleId) {
+          <tr>
+            <td>{{ g.giftName }}</td>
+            <td>{{ g.quantity }}</td>
+            <td>{{ g.giftRuleId }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    @if (order.status === 'Pending') {
+      <p class="muted">No gifts yet — confirm payment to evaluate promotional rules.</p>
+    } @else {
+      <p>None</p>
+    }
+  }
+}

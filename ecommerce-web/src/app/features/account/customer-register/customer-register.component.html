@@ -1,0 +1,43 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <h1>Create account</h1>
+    <p class="hint">
+      Register to place orders under your own profile. Demo seed emails (e.g. ahmed&#64;example.com) can be claimed with the same address.
+    </p>
+
+    @if (error) {
+      <div class="alert alert-error">{{ error }}</div>
+    }
+
+    <form (ngSubmit)="submit()">
+      <label class="form-field">
+        <span>Full name</span>
+        <input name="name" [(ngModel)]="name" required />
+      </label>
+      <label class="form-field">
+        <span>Email</span>
+        <input type="email" name="email" [(ngModel)]="email" autocomplete="email" required />
+      </label>
+      <label class="form-field">
+        <span>Phone</span>
+        <input name="phone" [(ngModel)]="phone" />
+      </label>
+      <label class="form-field">
+        <span>Password</span>
+        <input
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          autocomplete="new-password"
+          required
+          minlength="6"
+        />
+      </label>
+      <button type="submit" class="btn-primary btn-block" [disabled]="loading">
+        {{ loading ? 'Creating…' : 'Register' }}
+      </button>
+    </form>
+
+    <p class="auth-links"><a routerLink="/account/login">Already have an account?</a></p>
+  </div>
+</div>

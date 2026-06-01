@@ -4,9 +4,13 @@ public class OrderDTO
 {
     public int Id { get; set; }
     public int CustomerId { get; set; }
+    public decimal SubtotalAmount { get; set; }
+    public decimal TaxAmount { get; set; }
+    public decimal ShippingAmount { get; set; }
     public decimal TotalAmount { get; set; }
     public DateTime CreatedAt { get; set; }
     public string Status { get; set; } = string.Empty;
+    public string? PromotionCode { get; set; }
     public List<OrderItemDTO> OrderItems { get; set; } = new();
     public List<OrderGiftDTO> AssignedGifts { get; set; } = new();
 }

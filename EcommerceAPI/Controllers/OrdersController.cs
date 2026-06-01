@@ -1,11 +1,15 @@
 using EcommerceAPI.DTOs;
+using EcommerceAPI.Extensions;
+using EcommerceAPI.Models;
 using EcommerceAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EcommerceAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = AuthRoles.Customer)]
 public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
@@ -15,23 +19,13 @@ public class OrdersController : ControllerBase
         _orderService = orderService;
     }
 
-    [HttpGet("{id:int}")]
-    [ProducesResponseType(typeof(OrderDTO), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<OrderDTO>> GetById(int id)
-    {
-        var order = await _orderService.GetOrderByIdAsync(id);
-        if (order is null)
-            return NotFound();
-        return Ok(order);
-    }
-
     [HttpPost]
     [ProducesResponseType(typeof(OrderDTO), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<OrderDTO>> Create([FromBody] CreateOrderDTO dto)
+    public async Task<ActionResult<OrderDTO>> Create([FromBody] CustomerCreateOrderDTO dto)
     {
-        var order = await _orderService.CreateOrderAsync(dto);
-        return CreatedAtAction(nameof(GetById), new { id = order.Id }, order);
+        var customerId = User.GetCustomerId();
+        var order = await _orderService.CreateOrderForCustomerAsync(customerId, dto);
+        return Created($"/api/me/orders/{order.Id}", order);
     }
 }

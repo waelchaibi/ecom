@@ -1,6 +1,7 @@
 using EcommerceAPI.Data;
 using EcommerceAPI.DTOs;
 using EcommerceAPI.GiftRules;
+using EcommerceAPI.Mapping;
 using EcommerceAPI.Models;
 using EcommerceAPI.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ public class OrderService : IOrderService
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IProductRepository _productRepository;
+    private readonly IGiftRepository _giftRepository;
     private readonly AppDbContext _context;
     private readonly IGiftAssignmentService _giftAssignmentService;
     private readonly ILogger<OrderService> _logger;
@@ -18,12 +20,14 @@ public class OrderService : IOrderService
     public OrderService(
         IOrderRepository orderRepository,
         IProductRepository productRepository,
+        IGiftRepository giftRepository,
         AppDbContext context,
         IGiftAssignmentService giftAssignmentService,
         ILogger<OrderService> logger)
     {
         _orderRepository = orderRepository;
         _productRepository = productRepository;
+        _giftRepository = giftRepository;
         _context = context;
         _giftAssignmentService = giftAssignmentService;
         _logger = logger;
@@ -41,82 +45,173 @@ public class OrderService : IOrderService
         return MapToDTO(order);
     }
 
-    public async Task<OrderDTO> CreateOrderAsync(CreateOrderDTO dto)
+    public async Task<OrderDTO?> GetOrderForCustomerAsync(int customerId, int orderId)
     {
-        if (dto.CustomerId <= 0)
+        if (customerId <= 0 || orderId <= 0)
+            throw new ArgumentException("Valid customer and order IDs are required");
+
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        if (order is null || order.CustomerId != customerId)
+            return null;
+
+        return MapToDTO(order);
+    }
+
+    public async Task<IReadOnlyList<OrderDTO>> GetOrdersForCustomerAsync(int customerId)
+    {
+        if (customerId <= 0)
+            throw new ArgumentException("Customer ID must be greater than 0");
+
+        var orders = await _orderRepository.GetByCustomerIdAsync(customerId);
+        return orders.Select(MapToDTO).ToList();
+    }
+
+    public async Task<OrderDTO> CreateOrderForCustomerAsync(int customerId, CustomerCreateOrderDTO dto)
+    {
+        if (customerId <= 0)
             throw new ArgumentException("Valid customer ID is required");
 
         if (dto.Items == null || dto.Items.Count == 0)
             throw new ArgumentException("Order must contain at least one item");
 
-        var customer = await _context.Customers.FindAsync(dto.CustomerId);
+        var customer = await _context.Customers.FindAsync(customerId);
         if (customer == null)
-            throw new ArgumentException($"Customer with ID {dto.CustomerId} not found");
+            throw new ArgumentException($"Customer with ID {customerId} not found");
 
-        var priorCompletedOrderCount = await _context.Orders
-            .CountAsync(o => o.CustomerId == dto.CustomerId);
+        var promo = string.IsNullOrWhiteSpace(dto.PromotionCode) ? null : dto.PromotionCode.Trim();
 
-        decimal totalAmount = 0;
+        if (dto.TaxAmount < 0 || dto.ShippingAmount < 0)
+            throw new ArgumentException("Tax and shipping cannot be negative");
+
+        decimal subtotalAmount = 0;
         var orderItems = new List<OrderItem>();
+        var utc = DateTime.UtcNow;
+
+        foreach (var item in dto.Items)
+        {
+            if (item.ProductId <= 0)
+                throw new ArgumentException("Product ID must be greater than 0");
+
+            if (item.Quantity <= 0)
+                throw new ArgumentException("Quantity must be greater than 0");
+
+            var product = await _productRepository.GetByIdAsync(item.ProductId);
+            if (product == null)
+                throw new ArgumentException($"Product with ID {item.ProductId} not found");
+
+            if (product.StockQuantity < item.Quantity)
+                throw new ArgumentException(
+                    $"Insufficient stock for product '{product.Name}'. Available: {product.StockQuantity}, Requested: {item.Quantity}");
+
+            orderItems.Add(new OrderItem
+            {
+                ProductId = item.ProductId,
+                Quantity = item.Quantity,
+                Price = product.Price
+            });
+            subtotalAmount += product.Price * item.Quantity;
+        }
+
+        var taxAmount = dto.TaxAmount;
+        var shippingAmount = dto.ShippingAmount;
+        var totalAmount = subtotalAmount + taxAmount + shippingAmount;
+
+        var order = new Order
+        {
+            CustomerId = customerId,
+            SubtotalAmount = subtotalAmount,
+            TaxAmount = taxAmount,
+            ShippingAmount = shippingAmount,
+            TotalAmount = totalAmount,
+            Status = OrderStatuses.Pending,
+            PromotionCode = promo,
+            OrderItems = orderItems,
+            CreatedAt = utc
+        };
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             foreach (var item in dto.Items)
             {
-                if (item.ProductId <= 0)
-                    throw new ArgumentException("Product ID must be greater than 0");
-
-                if (item.Quantity <= 0)
-                    throw new ArgumentException("Quantity must be greater than 0");
-
-                var product = await _productRepository.GetByIdAsync(item.ProductId);
-                if (product == null)
-                    throw new ArgumentException($"Product with ID {item.ProductId} not found");
-
-                if (product.StockQuantity < item.Quantity)
-                    throw new ArgumentException(
-                        $"Insufficient stock for product '{product.Name}'. Available: {product.StockQuantity}, Requested: {item.Quantity}");
-
-                product.StockQuantity -= item.Quantity;
-                product.UpdatedAt = DateTime.UtcNow;
-
-                orderItems.Add(new OrderItem
+                var ok = await _productRepository.TryDecrementStockAsync(item.ProductId, item.Quantity, utc);
+                if (!ok)
                 {
-                    ProductId = item.ProductId,
-                    Quantity = item.Quantity,
-                    Price = product.Price
-                });
-                totalAmount += product.Price * item.Quantity;
+                    throw new InvalidOperationException(
+                        $"Could not reserve stock for product {item.ProductId} (concurrent sale or insufficient quantity). Retry the order.");
+                }
             }
+
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            var reloaded = await _orderRepository.GetByIdAsync(order.Id);
+            return MapToDTO(reloaded!);
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task<OrderDTO> ConfirmPaymentAsync(int orderId)
+    {
+        if (orderId <= 0)
+            throw new ArgumentException("Order ID must be greater than 0");
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                .Include(o => o.OrderGifts)
+                .Include(o => o.Customer)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
+            if (order is null)
+                throw new KeyNotFoundException($"Order with ID {orderId} not found.");
+
+            if (order.Status == OrderStatuses.Confirmed)
+            {
+                await transaction.CommitAsync();
+                return MapToDTO((await _orderRepository.GetByIdAsync(orderId))!);
+            }
+
+            if (order.Status != OrderStatuses.Pending)
+            {
+                throw new InvalidOperationException(
+                    $"Cannot confirm payment for order in status '{order.Status}'. Only '{OrderStatuses.Pending}' orders can be confirmed.");
+            }
+
+            var customer = order.Customer ?? await _context.Customers.FindAsync(order.CustomerId);
+            if (customer is null)
+                throw new InvalidOperationException("Customer record is missing for this order.");
+
+            var priorQualifyingOrderCount = await _context.Orders
+                .AsNoTracking()
+                .CountAsync(o =>
+                    o.CustomerId == order.CustomerId &&
+                    o.Id != order.Id &&
+                    (o.Status == OrderStatuses.Confirmed || o.Status == OrderStatuses.Shipped));
 
             var previewOrder = new Order
             {
-                CustomerId = dto.CustomerId,
-                TotalAmount = totalAmount,
-                Status = "Confirmed",
-                Customer = customer
+                CustomerId = order.CustomerId,
+                TotalAmount = order.TotalAmount,
+                Status = OrderStatuses.Confirmed,
+                Customer = customer,
+                OrderItems = order.OrderItems.ToList()
             };
 
             var giftContext = new GiftRuleEvaluationContext(
                 previewOrder,
                 customer,
-                priorCompletedOrderCount,
-                dto.PromotionCode);
+                priorQualifyingOrderCount,
+                order.PromotionCode);
 
             var giftApplications = await _giftAssignmentService.EvaluateAsync(giftContext);
-
-            var order = new Order
-            {
-                CustomerId = dto.CustomerId,
-                TotalAmount = totalAmount,
-                Status = "Confirmed",
-                OrderItems = orderItems,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
 
             foreach (var app in giftApplications)
             {
@@ -127,7 +222,8 @@ public class OrderService : IOrderService
                     continue;
                 }
 
-                if (gift.StockQuantity < 1)
+                var reserved = await _giftRepository.TryDecrementStockAsync(app.GiftId, 1);
+                if (!reserved)
                 {
                     _logger.LogWarning(
                         "Gift {GiftId} ({GiftName}) could not be assigned for order {OrderId}: insufficient stock.",
@@ -136,8 +232,6 @@ public class OrderService : IOrderService
                         order.Id);
                     continue;
                 }
-
-                gift.StockQuantity -= 1;
 
                 _context.OrderGifts.Add(new OrderGift
                 {
@@ -155,6 +249,7 @@ public class OrderService : IOrderService
                     gift.Name);
             }
 
+            order.Status = OrderStatuses.Confirmed;
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -168,29 +263,89 @@ public class OrderService : IOrderService
         }
     }
 
-    private OrderDTO MapToDTO(Order order)
+    public async Task<OrderDTO> CancelOrderAsync(int orderId)
     {
-        return new OrderDTO
+        if (orderId <= 0)
+            throw new ArgumentException("Order ID must be greater than 0");
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            Id = order.Id,
-            CustomerId = order.CustomerId,
-            TotalAmount = order.TotalAmount,
-            CreatedAt = order.CreatedAt,
-            Status = order.Status,
-            OrderItems = order.OrderItems.Select(oi => new OrderItemDTO
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                .Include(o => o.OrderGifts)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
+            if (order is null)
+                throw new KeyNotFoundException($"Order with ID {orderId} not found.");
+
+            if (order.Status == OrderStatuses.Cancelled)
             {
-                Id = oi.Id,
-                ProductId = oi.ProductId,
-                Quantity = oi.Quantity,
-                Price = oi.Price
-            }).ToList(),
-            AssignedGifts = order.OrderGifts.Select(og => new OrderGiftDTO
+                await transaction.CommitAsync();
+                return MapToDTO((await _orderRepository.GetByIdAsync(orderId))!);
+            }
+
+            if (order.Status != OrderStatuses.Pending &&
+                order.Status != OrderStatuses.Confirmed &&
+                order.Status != OrderStatuses.Shipped)
             {
-                GiftId = og.GiftId,
-                GiftName = og.Gift?.Name ?? string.Empty,
-                Quantity = og.Quantity,
-                GiftRuleId = og.GiftRuleId
-            }).ToList()
-        };
+                throw new InvalidOperationException($"Cannot cancel order in status '{order.Status}'.");
+            }
+
+            var utc = DateTime.UtcNow;
+
+            foreach (var line in order.OrderItems)
+                await _productRepository.IncrementStockAsync(line.ProductId, line.Quantity, utc);
+
+            if (order.Status == OrderStatuses.Confirmed || order.Status == OrderStatuses.Shipped)
+            {
+                foreach (var og in order.OrderGifts.ToList())
+                    await _giftRepository.IncrementStockAsync(og.GiftId, og.Quantity);
+            }
+
+            order.Status = OrderStatuses.Cancelled;
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            var reloaded = await _orderRepository.GetByIdAsync(order.Id);
+            return MapToDTO(reloaded!);
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
+
+    public async Task<OrderDTO> PayOrderAsCustomerAsync(int customerId, int orderId)
+    {
+        await EnsureOrderOwnedByCustomerAsync(customerId, orderId);
+        return await ConfirmPaymentAsync(orderId);
+    }
+
+    public async Task<OrderDTO> CancelOrderAsCustomerAsync(int customerId, int orderId)
+    {
+        var order = await EnsureOrderOwnedByCustomerAsync(customerId, orderId);
+        if (order.Status != OrderStatuses.Pending)
+        {
+            throw new InvalidOperationException(
+                $"Only orders awaiting payment can be cancelled online. Current status: '{order.Status}'.");
+        }
+
+        return await CancelOrderAsync(orderId);
+    }
+
+    private async Task<Order> EnsureOrderOwnedByCustomerAsync(int customerId, int orderId)
+    {
+        if (customerId <= 0 || orderId <= 0)
+            throw new ArgumentException("Valid customer and order IDs are required.");
+
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        if (order is null || order.CustomerId != customerId)
+            throw new KeyNotFoundException($"Order with ID {orderId} not found.");
+
+        return order;
+    }
+
+    private static OrderDTO MapToDTO(Order order) => OrderMapper.ToDto(order);
 }

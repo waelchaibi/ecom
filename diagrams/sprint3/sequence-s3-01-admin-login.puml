@@ -1,0 +1,42 @@
+@startuml Sequence_S3_01_Admin_Login
+' US-S3-01 : Connexion admin JWT
+
+title US-S3-01 — Connexion administrateur (JWT)
+
+actor "Admin\n(Angular)" as AdminUI
+participant "AuthController\nPOST /api/auth/login" as AuthCtrl
+participant "JwtTokenService" as Jwt
+participant "AdminCredentialsOptions" as Config
+
+AdminUI -> AuthCtrl : POST /api/auth/login\n{ username, password }
+activate AuthCtrl
+
+AuthCtrl -> Config : lit Username / Password\n(appsettings)
+
+alt mot de passe admin non configuré
+  AuthCtrl --> AdminUI : 503 Service Unavailable
+else credentials invalides
+  AuthCtrl --> AdminUI : 401 Unauthorized
+else OK
+  AuthCtrl -> Jwt : CreateAdminToken(username)
+  activate Jwt
+  Jwt --> AuthCtrl : JWT (claim role = Admin)
+  deactivate Jwt
+  AuthCtrl --> AdminUI : 200 LoginResponseDTO\n{ token, expiresAtUtc }
+  AdminUI -> AdminUI : localStorage\necom_admin_jwt
+end
+
+deactivate AuthCtrl
+
+== Accès route protégée ==
+
+AdminUI -> AdminUI : Navigation /admin/dashboard
+AdminUI -> AdminUI : Intercepteur HTTP\nAuthorization: Bearer {token}
+
+AdminUI -> AuthCtrl : GET /api/analytics/dashboard\n(ou autre /api/admin/*)
+note right
+  [Authorize(Roles = Admin)]
+  Middleware valide signature JWT
+end note
+
+@enduml
