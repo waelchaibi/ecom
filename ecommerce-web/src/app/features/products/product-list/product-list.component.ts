@@ -4,14 +4,16 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductApiService } from '../../../core/services/product-api.service';
 import { CategoryApiService } from '../../../core/services/category-api.service';
 import { CartApiService } from '../../../core/services/cart-api.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { CustomerAuthService } from '../../../core/services/customer-auth.service';
+import { ProductMediaComponent } from '../../../core/components/product-media/product-media.component';
 import { Product } from '../../../core/models/product';
 import { Category } from '../../../core/models/category';
 
 @Component({
   selector: 'ecom-product-list',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ProductMediaComponent],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss'
 })
@@ -19,6 +21,7 @@ export class ProductListComponent implements OnInit {
   private readonly productsApi = inject(ProductApiService);
   private readonly categoriesApi = inject(CategoryApiService);
   private readonly cartApi = inject(CartApiService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly auth = inject(CustomerAuthService);
@@ -52,9 +55,25 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  addToCart(p: Product): void {
+  productLink(p: Product): (string | number)[] {
+    return ['/products', p.id];
+  }
+
+  productQueryParams(): Record<string, number> | null {
+    return this.categoryId != null ? { categoryId: this.categoryId } : null;
+  }
+
+  async addToCart(p: Product): Promise<void> {
     if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/account/login'], { queryParams: { returnUrl: '/products' } });
+      return;
+    }
+    const confirmed = await this.confirmDialog.open({
+      title: 'Add to cart',
+      message: `Add "${p.name}" to your cart?`,
+      confirmLabel: 'Add to cart'
+    });
+    if (!confirmed) {
       return;
     }
     this.cartMsg = null;

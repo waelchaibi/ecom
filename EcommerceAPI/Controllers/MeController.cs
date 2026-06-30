@@ -53,13 +53,13 @@ public class MeController : ControllerBase
         return Ok(order);
     }
 
-    /// <summary>Simulates successful payment (no external PSP). Confirms order and applies gifts.</summary>
+    /// <summary>Simulated payment gateway — validates card format then confirms order.</summary>
     [HttpPost("orders/{id:int}/pay")]
     [ProducesResponseType(typeof(OrderDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<OrderDTO>> PayOrder(int id) =>
-        Ok(await _orderService.PayOrderAsCustomerAsync(User.GetCustomerId(), id));
+    public async Task<ActionResult<OrderDTO>> PayOrder(int id, [FromBody] SimulatePaymentDTO payment) =>
+        Ok(await _orderService.PayOrderAsCustomerAsync(User.GetCustomerId(), id, payment));
 
     [HttpPost("orders/{id:int}/cancel")]
     [ProducesResponseType(typeof(OrderDTO), StatusCodes.Status200OK)]

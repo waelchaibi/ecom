@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AdminAuthService } from '../../../core/services/admin-auth.service';
+import { AuthCoordinatorService } from '../../../core/services/auth-coordinator.service';
 
 @Component({
   selector: 'app-admin-login',
@@ -17,10 +18,11 @@ export class AdminLoginComponent implements OnInit {
   loading = false;
 
   private readonly auth = inject(AdminAuthService);
+  private readonly coordinator = inject(AuthCoordinatorService);
   private readonly router = inject(Router);
 
   ngOnInit(): void {
-    if (this.auth.token()) {
+    if (this.auth.isAdminSession()) {
       void this.router.navigateByUrl('/admin/dashboard');
     }
   }
@@ -30,6 +32,7 @@ export class AdminLoginComponent implements OnInit {
     this.loading = true;
     this.auth.login(this.username, this.password).subscribe({
       next: () => {
+        this.coordinator.onAdminLoginSuccess();
         this.loading = false;
         void this.router.navigateByUrl('/admin/dashboard');
       },

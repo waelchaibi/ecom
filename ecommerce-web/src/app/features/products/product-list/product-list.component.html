@@ -51,38 +51,43 @@
   <div class="product-grid">
     @for (p of products; track p.id) {
       <article class="product-card surface-card">
-        <div class="product-card__media">
-          @if (p.imageUrl) {
-            <img [src]="p.imageUrl" [alt]="p.name" loading="lazy" />
-          } @else {
-            <div class="product-card__placeholder" aria-hidden="true">{{ p.name.charAt(0) }}</div>
-          }
-          @if (p.categoryName) {
-            <span class="product-card__badge">{{ p.categoryName }}</span>
-          }
-        </div>
-        <div class="product-card__body">
-          <h2>{{ p.name }}</h2>
-          <p class="product-card__desc">{{ p.description }}</p>
-          <div class="product-card__footer">
-            <div class="product-card__price">
-              <span class="amount">{{ p.price | number: '1.2-2' }}</span>
-              <span class="stock" [class.low]="p.stockQuantity < 5">
-                {{ p.stockQuantity > 0 ? p.stockQuantity + ' in stock' : 'Out of stock' }}
-              </span>
-            </div>
-            <div class="product-card__actions">
-              <button
-                type="button"
-                class="btn-primary btn-sm"
-                (click)="addToCart(p)"
-                [disabled]="p.stockQuantity < 1"
-              >
-                Add to cart
-              </button>
-              <a class="btn-ghost btn-sm" routerLink="/order" [queryParams]="{ productId: p.id }">Buy now</a>
+        <a class="product-card__link" [routerLink]="productLink(p)" [queryParams]="productQueryParams()">
+          <div class="product-card__media">
+            <ecom-product-media [name]="p.name" [imageUrl]="p.imageUrl" />
+            @if (p.categoryName) {
+              <span class="product-card__badge">{{ p.categoryName }}</span>
+            }
+          </div>
+          <div class="product-card__body">
+            <h2>{{ p.name }}</h2>
+            <p class="product-card__desc">{{ p.description }}</p>
+            <div class="product-card__footer">
+              <div class="product-card__price">
+                <span class="amount">{{ p.price | number: '1.2-2' }}</span>
+                <span class="stock" [class.low]="p.stockQuantity < 5">
+                  {{ p.stockQuantity > 0 ? p.stockQuantity + ' in stock' : 'Out of stock' }}
+                </span>
+              </div>
             </div>
           </div>
+        </a>
+        <div class="product-card__actions">
+          <button
+            type="button"
+            class="btn-primary btn-sm"
+            (click)="addToCart(p)"
+            [disabled]="p.stockQuantity < 1"
+          >
+            Add to cart
+          </button>
+          <a class="btn-ghost btn-sm" routerLink="/order" [queryParams]="{ productId: p.id }">Buy now</a>
+          <a
+            class="btn-ghost btn-sm"
+            [routerLink]="productLink(p)"
+            [queryParams]="productQueryParams()"
+          >
+            Details
+          </a>
         </div>
       </article>
     }

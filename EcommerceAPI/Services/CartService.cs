@@ -11,22 +11,25 @@ public sealed class CartService : ICartService
     private readonly ICartRepository _cartRepository;
     private readonly IProductRepository _productRepository;
     private readonly IOrderService _orderService;
+    private readonly ICheckoutPricingService _checkoutPricing;
     private readonly AppDbContext _context;
 
     public CartService(
         ICartRepository cartRepository,
         IProductRepository productRepository,
         IOrderService orderService,
+        ICheckoutPricingService checkoutPricing,
         AppDbContext context)
     {
         _cartRepository = cartRepository;
         _productRepository = productRepository;
         _orderService = orderService;
+        _checkoutPricing = checkoutPricing;
         _context = context;
     }
 
     public async Task<CartDTO> GetCartAsync(int customerId) =>
-        MapCart(await _cartRepository.GetOrCreateAsync(customerId));
+        MapCart(await _cartRepository.GetOrCreateAsync(customerId), _checkoutPricing);
 
     public async Task<CartDTO> UpsertItemAsync(int customerId, CartItemUpsertDTO dto)
     {
@@ -71,14 +74,14 @@ public sealed class CartService : ICartService
 
         cart.UpdatedAt = DateTime.UtcNow;
         await _cartRepository.SaveChangesAsync();
-        return MapCart((await _cartRepository.GetByCustomerIdAsync(customerId))!);
+        return MapCart((await _cartRepository.GetByCustomerIdAsync(customerId))!, _checkoutPricing);
     }
 
     public async Task<CartDTO> RemoveItemAsync(int customerId, int productId)
     {
         var cart = await _cartRepository.GetByCustomerIdAsync(customerId);
         if (cart is null)
-            return new CartDTO();
+            return new CartDTO { EstimatedTax = 0, EstimatedShipping = 0, EstimatedTotal = 0 };
 
         var line = cart.Items.FirstOrDefault(i => i.ProductId == productId);
         if (line is not null)
@@ -88,7 +91,7 @@ public sealed class CartService : ICartService
             await _cartRepository.SaveChangesAsync();
         }
 
-        return MapCart((await _cartRepository.GetByCustomerIdAsync(customerId)) ?? cart);
+        return MapCart((await _cartRepository.GetByCustomerIdAsync(customerId)) ?? cart, _checkoutPricing);
     }
 
     public async Task ClearCartAsync(int customerId)
@@ -106,9 +109,6 @@ public sealed class CartService : ICartService
         if (cart is null || cart.Items.Count == 0)
             throw new ArgumentException("Cart is empty");
 
-        if (dto.TaxAmount < 0 || dto.ShippingAmount < 0)
-            throw new ArgumentException("Tax and shipping cannot be negative");
-
         var orderDto = new CustomerCreateOrderDTO
         {
             Items = cart.Items.Select(i => new CreateOrderItemDTO
@@ -116,9 +116,7 @@ public sealed class CartService : ICartService
                 ProductId = i.ProductId,
                 Quantity = i.Quantity
             }).ToList(),
-            PromotionCode = dto.PromotionCode,
-            TaxAmount = dto.TaxAmount,
-            ShippingAmount = dto.ShippingAmount
+            PromotionCode = dto.PromotionCode
         };
 
         var order = await _orderService.CreateOrderForCustomerAsync(customerId, orderDto);
@@ -126,7 +124,7 @@ public sealed class CartService : ICartService
         return order;
     }
 
-    private static CartDTO MapCart(Cart cart)
+    private static CartDTO MapCart(Cart cart, ICheckoutPricingService pricing)
     {
         var lines = cart.Items
             .Where(i => i.Product is not null)
@@ -142,10 +140,16 @@ public sealed class CartService : ICartService
             })
             .ToList();
 
+        var subtotal = lines.Sum(l => l.LineTotal);
+        var estimate = pricing.Calculate(subtotal);
+
         return new CartDTO
         {
             Items = lines,
-            Subtotal = lines.Sum(l => l.LineTotal)
+            Subtotal = subtotal,
+            EstimatedTax = estimate.TaxAmount,
+            EstimatedShipping = estimate.ShippingAmount,
+            EstimatedTotal = estimate.TotalAmount
         };
     }
 }

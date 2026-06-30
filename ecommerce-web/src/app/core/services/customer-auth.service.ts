@@ -8,21 +8,27 @@ import {
   CustomerProfile,
   CustomerRegisterPayload
 } from '../models/customer-profile';
+import { jwtHasRole } from '../utils/jwt.util';
 
 const STORAGE_KEY = 'ecom_customer_jwt';
 const PROFILE_KEY = 'ecom_customer_profile';
+const CUSTOMER_ROLE = 'Customer';
 
 @Injectable({ providedIn: 'root' })
 export class CustomerAuthService {
   private readonly http = inject(HttpClient);
   readonly token = signal<string | null>(null);
   readonly profile = signal<CustomerProfile | null>(null);
-  readonly isLoggedIn = computed(() => !!this.token());
+  readonly isLoggedIn = computed(() => this.isCustomerSession());
+  readonly isCustomerSession = computed(() => jwtHasRole(this.token(), CUSTOMER_ROLE));
 
   constructor() {
     const existing = localStorage.getItem(STORAGE_KEY);
-    if (existing) {
+    if (existing && jwtHasRole(existing, CUSTOMER_ROLE)) {
       this.token.set(existing);
+    } else if (existing) {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(PROFILE_KEY);
     }
     const profileJson = localStorage.getItem(PROFILE_KEY);
     if (profileJson) {
@@ -63,6 +69,9 @@ export class CustomerAuthService {
   }
 
   private persistSession(res: CustomerAuthResponse): void {
+    if (!jwtHasRole(res.token, CUSTOMER_ROLE)) {
+      throw new Error('Invalid customer token');
+    }
     localStorage.setItem(STORAGE_KEY, res.token);
     localStorage.setItem(PROFILE_KEY, JSON.stringify(res.customer));
     this.token.set(res.token);

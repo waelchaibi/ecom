@@ -5,6 +5,4 @@ public class CustomerCreateOrderDTO
 {
     public List<CreateOrderItemDTO> Items { get; set; } = new();
     public string? PromotionCode { get; set; }
-    public decimal TaxAmount { get; set; }
-    public decimal ShippingAmount { get; set; }
 }

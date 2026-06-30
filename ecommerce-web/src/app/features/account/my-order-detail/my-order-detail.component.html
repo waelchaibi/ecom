@@ -21,12 +21,14 @@
   </div>
 
   @if (order.status === 'Pending') {
-    <div class="pay-box surface-card">
-      <p>Awaiting payment. Simulate payment below (demo — no real card charge).</p>
-      <div class="pay-box__actions">
-        <button type="button" class="btn-primary" (click)="pay()" [disabled]="busy">Pay now (simulate)</button>
-        <button type="button" class="btn-ghost" (click)="cancel()" [disabled]="busy">Cancel order</button>
-      </div>
+    <div class="pay-box">
+      <p class="muted">Awaiting payment. Complete the form below (demo — no real charge).</p>
+      <ecom-payment-gateway
+        [amount]="order.totalAmount"
+        [busy]="busy"
+        (pay)="pay($event)"
+      />
+      <button type="button" class="btn-ghost" (click)="cancel()" [disabled]="busy">Cancel order</button>
     </div>
   }
 

@@ -5,7 +5,7 @@ import { CustomerAuthService } from '../services/customer-auth.service';
 export const customerAuthGuard: CanActivateFn = () => {
   const auth = inject(CustomerAuthService);
   const router = inject(Router);
-  if (auth.token()) {
+  if (auth.isCustomerSession()) {
     return true;
   }
   return router.createUrlTree(['/account/login'], { queryParams: { returnUrl: router.url } });

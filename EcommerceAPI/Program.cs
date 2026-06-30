@@ -15,6 +15,7 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.Configure<CheckoutPricingOptions>(builder.Configuration.GetSection(CheckoutPricingOptions.SectionName));
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<AdminCredentialsOptions>(builder.Configuration.GetSection(AdminCredentialsOptions.SectionName));
 builder.Services.Configure<AdminSecurityOptions>(builder.Configuration.GetSection(AdminSecurityOptions.SectionName));
@@ -102,6 +103,8 @@ builder.Services.AddScoped<IAdminAuditService, AdminAuditService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
 builder.Services.AddScoped<IPasswordHasherService, PasswordHasherService>();
+builder.Services.AddScoped<ICheckoutPricingService, CheckoutPricingService>();
+builder.Services.AddScoped<IPaymentGatewayService, PaymentGatewayService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAdminOrderService, AdminOrderService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();

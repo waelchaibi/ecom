@@ -11,7 +11,7 @@ public interface IOrderService
     Task<OrderDTO> ConfirmPaymentAsync(int orderId);
     Task<OrderDTO> CancelOrderAsync(int orderId);
     /// <summary>Emulated payment: Pending → Confirmed for the owning customer only.</summary>
-    Task<OrderDTO> PayOrderAsCustomerAsync(int customerId, int orderId);
+    Task<OrderDTO> PayOrderAsCustomerAsync(int customerId, int orderId, SimulatePaymentDTO payment);
     /// <summary>Customer may cancel only their own Pending orders.</summary>
     Task<OrderDTO> CancelOrderAsCustomerAsync(int customerId, int orderId);
 }

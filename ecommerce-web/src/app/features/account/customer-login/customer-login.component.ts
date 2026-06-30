@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CustomerAuthService } from '../../../core/services/customer-auth.service';
+import { AuthCoordinatorService } from '../../../core/services/auth-coordinator.service';
 
 @Component({
   selector: 'app-customer-login',
@@ -18,11 +19,12 @@ export class CustomerLoginComponent implements OnInit {
   returnUrl = '/order';
 
   private readonly auth = inject(CustomerAuthService);
+  private readonly coordinator = inject(AuthCoordinatorService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
   ngOnInit(): void {
-    if (this.auth.token()) {
+    if (this.auth.isCustomerSession()) {
       void this.router.navigateByUrl('/account/orders');
       return;
     }
@@ -37,6 +39,7 @@ export class CustomerLoginComponent implements OnInit {
     this.loading = true;
     this.auth.login({ email: this.email, password: this.password }).subscribe({
       next: () => {
+        this.coordinator.onCustomerLoginSuccess();
         this.loading = false;
         void this.router.navigateByUrl(this.returnUrl);
       },

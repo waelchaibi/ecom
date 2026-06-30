@@ -18,7 +18,6 @@ export class MyOrdersComponent implements OnInit {
 
   orders: Order[] = [];
   err = '';
-  busyId: number | null = null;
 
   ngOnInit(): void {
     this.load();
@@ -28,23 +27,6 @@ export class MyOrdersComponent implements OnInit {
     this.api.getMyOrders().subscribe({
       next: (o) => (this.orders = o),
       error: () => (this.err = 'Could not load your orders.')
-    });
-  }
-
-  pay(o: Order, event: Event): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.err = '';
-    this.busyId = o.id;
-    this.api.payOrder(o.id).subscribe({
-      next: () => {
-        this.busyId = null;
-        this.load();
-      },
-      error: (e) => {
-        this.busyId = null;
-        this.err = e.error?.error ?? e.message ?? 'Payment failed.';
-      }
     });
   }
 

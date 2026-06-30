@@ -1,0 +1,22 @@
+@if (confirmDialog.dialog(); as d) {
+  <div class="confirm-overlay" role="presentation">
+    <button type="button" class="confirm-backdrop" aria-label="Close dialog" (click)="confirmDialog.dismiss()"></button>
+    <div class="confirm-panel surface-card" role="alertdialog" aria-modal="true" aria-labelledby="confirm-dialog-title">
+      <h2 id="confirm-dialog-title">{{ d.title }}</h2>
+      <p>{{ d.message }}</p>
+      <div class="confirm-actions">
+        <button type="button" class="btn-secondary" (click)="confirmDialog.dismiss()">
+          {{ d.cancelLabel }}
+        </button>
+        <button
+          type="button"
+          [class.btn-primary]="d.tone === 'default'"
+          [class.btn-accent]="d.tone === 'danger'"
+          (click)="confirmDialog.accept()"
+        >
+          {{ d.confirmLabel }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

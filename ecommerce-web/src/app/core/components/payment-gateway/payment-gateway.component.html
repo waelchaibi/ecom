@@ -1,0 +1,47 @@
+<div class="payment-gateway surface-card">
+  <h3>Payment</h3>
+  <p class="muted payment-amount">
+    Amount due: <strong>{{ amount | number: '1.2-2' }}</strong>
+  </p>
+  <p class="muted payment-hint">Demo gateway — use card <code>4000000000000002</code> to test decline.</p>
+
+  @if (localError) {
+    <div class="alert alert-error">{{ localError }}</div>
+  }
+
+  <form class="payment-form" (ngSubmit)="submit()">
+    <label class="form-field">
+      <span>Cardholder name</span>
+      <input type="text" name="cardholder" [(ngModel)]="cardholderName" autocomplete="cc-name" [disabled]="busy" />
+    </label>
+    <label class="form-field">
+      <span>Card number</span>
+      <input
+        type="text"
+        name="cardNumber"
+        [(ngModel)]="cardNumber"
+        inputmode="numeric"
+        autocomplete="cc-number"
+        placeholder="4242 4242 4242 4242"
+        [disabled]="busy"
+      />
+    </label>
+    <div class="payment-form__row">
+      <label class="form-field">
+        <span>Expiry month</span>
+        <input type="text" name="expMonth" [(ngModel)]="expiryMonth" placeholder="MM" maxlength="2" [disabled]="busy" />
+      </label>
+      <label class="form-field">
+        <span>Expiry year</span>
+        <input type="text" name="expYear" [(ngModel)]="expiryYear" placeholder="YY" maxlength="4" [disabled]="busy" />
+      </label>
+      <label class="form-field">
+        <span>CVV</span>
+        <input type="password" name="cvv" [(ngModel)]="cvv" maxlength="4" autocomplete="cc-csc" [disabled]="busy" />
+      </label>
+    </div>
+    <button type="submit" class="btn-primary btn-block" [disabled]="busy">
+      {{ busy ? 'Processing…' : submitLabel }}
+    </button>
+  </form>
+</div>

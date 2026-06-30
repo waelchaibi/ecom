@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Order } from '../models/order';
+import { SimulatePaymentPayload } from '../models/payment';
 import { CustomerProfile } from '../models/customer-profile';
 
 @Injectable({ providedIn: 'root' })
@@ -22,9 +23,9 @@ export class CustomerAccountApiService {
     return this.http.get<Order>(`${this.base}/me/orders/${id}`);
   }
 
-  /** Emulated payment — no card processor; marks order Confirmed and applies gifts. */
-  payOrder(id: number): Observable<Order> {
-    return this.http.post<Order>(`${this.base}/me/orders/${id}/pay`, {});
+  /** Simulated payment gateway — validates card then confirms order. */
+  payOrder(id: number, payment: SimulatePaymentPayload): Observable<Order> {
+    return this.http.post<Order>(`${this.base}/me/orders/${id}/pay`, payment);
   }
 
   cancelOrder(id: number): Observable<Order> {

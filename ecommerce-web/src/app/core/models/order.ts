@@ -30,6 +30,4 @@ export interface Order {
 export interface CreateOrderPayload {
   items: { productId: number; quantity: number }[];
   promotionCode?: string;
-  taxAmount?: number;
-  shippingAmount?: number;
 }

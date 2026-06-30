@@ -69,17 +69,15 @@
         <dl class="summary-rows">
           <dt>Subtotal</dt>
           <dd>{{ cart.subtotal | number: '1.2-2' }}</dd>
+          <dt>Tax</dt>
+          <dd>{{ cart.estimatedTax | number: '1.2-2' }}</dd>
+          <dt>Shipping</dt>
+          <dd>{{ cart.estimatedShipping | number: '1.2-2' }}</dd>
+          <dt class="summary-total">Total</dt>
+          <dd class="summary-total">{{ cart.estimatedTotal | number: '1.2-2' }}</dd>
         </dl>
 
         <form class="checkout-form" (ngSubmit)="checkout()">
-          <label class="form-field">
-            <span>Tax</span>
-            <input type="number" min="0" step="0.01" [(ngModel)]="taxAmount" name="tax" />
-          </label>
-          <label class="form-field">
-            <span>Shipping</span>
-            <input type="number" min="0" step="0.01" [(ngModel)]="shippingAmount" name="ship" />
-          </label>
           <label class="form-field">
             <span>Promotion code</span>
             <input type="text" [(ngModel)]="promotionCode" name="promo" autocomplete="off" placeholder="Optional" />
@@ -97,9 +95,11 @@
   <div class="checkout-success surface-card">
     <div class="alert alert-success">{{ message }}</div>
     @if (lastOrder?.status === 'Pending') {
-      <button type="button" class="btn-primary" (click)="payLastOrder()" [disabled]="paying">
-        {{ paying ? 'Processing…' : 'Pay now (simulate)' }}
-      </button>
+      <ecom-payment-gateway
+        [amount]="lastOrder!.totalAmount"
+        [busy]="paying"
+        (pay)="payLastOrder($event)"
+      />
     }
     <p><a routerLink="/account/orders">View my orders →</a></p>
   </div>

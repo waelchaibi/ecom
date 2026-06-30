@@ -31,9 +31,7 @@
         <p class="order-card__total">{{ o.totalAmount | number: '1.2-2' }}</p>
         <div class="order-card__actions">
           @if (o.status === 'Pending') {
-            <button type="button" class="btn-accent btn-sm" (click)="pay(o, $event)" [disabled]="busyId === o.id">
-              Pay (simulate)
-            </button>
+            <a class="btn-accent btn-sm" [routerLink]="['/account/orders', o.id]">Pay now</a>
           }
           <a class="btn-secondary btn-sm" [routerLink]="['/account/orders', o.id]">View details</a>
         </div>

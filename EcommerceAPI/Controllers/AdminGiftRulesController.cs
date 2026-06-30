@@ -17,6 +17,13 @@ public class AdminGiftRulesController : ControllerBase
         _giftRuleService = giftRuleService;
     }
 
+    [HttpGet]
+    [ProducesResponseType(typeof(IReadOnlyList<GiftRuleDTO>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<GiftRuleDTO>>> GetAll()
+    {
+        return Ok(await _giftRuleService.GetAllAsync());
+    }
+
     [HttpPost]
     [ProducesResponseType(typeof(GiftRuleDTO), StatusCodes.Status201Created)]
     public async Task<ActionResult<GiftRuleDTO>> Create([FromBody] CreateGiftRuleDTO dto)

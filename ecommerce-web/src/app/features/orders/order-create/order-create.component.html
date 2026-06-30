@@ -15,14 +15,6 @@
       <h2>Order details</h2>
 
       <label class="form-field">
-        <span>Tax</span>
-        <input type="number" min="0" step="0.01" name="tax" [(ngModel)]="taxAmount" />
-      </label>
-      <label class="form-field">
-        <span>Shipping</span>
-        <input type="number" min="0" step="0.01" name="shipping" [(ngModel)]="shippingAmount" />
-      </label>
-      <label class="form-field">
         <span>Promotion code (optional)</span>
         <input
           type="text"
@@ -70,8 +62,21 @@
     </form>
 
     <aside class="checkout-aside surface-card">
-      <h2>Quick tip</h2>
-      <p class="muted">Prefer browsing first? Add items from the shop to your cart for a faster checkout.</p>
+      <h2>Order summary</h2>
+      @if (pricing) {
+        <dl class="summary-rows">
+          <dt>Subtotal</dt>
+          <dd>{{ pricing.subtotal | number: '1.2-2' }}</dd>
+          <dt>Tax</dt>
+          <dd>{{ pricing.taxAmount | number: '1.2-2' }}</dd>
+          <dt>Shipping</dt>
+          <dd>{{ pricing.shippingAmount | number: '1.2-2' }}</dd>
+          <dt class="summary-total">Total</dt>
+          <dd class="summary-total">{{ pricing.totalAmount | number: '1.2-2' }}</dd>
+        </dl>
+      } @else {
+        <p class="muted">Select products to see server-calculated totals.</p>
+      }
       <a routerLink="/cart" class="btn-secondary btn-block">View cart</a>
       <a routerLink="/products" class="btn-ghost btn-block">Continue shopping</a>
     </aside>
@@ -82,9 +87,11 @@
   <div class="checkout-result surface-card">
     <div class="alert alert-success">{{ message }}</div>
     @if (lastOrder?.status === 'Pending') {
-      <button type="button" class="btn-primary" (click)="payLastOrder()" [disabled]="paying">
-        {{ paying ? 'Processing…' : 'Pay now (simulate)' }}
-      </button>
+      <ecom-payment-gateway
+        [amount]="lastOrder!.totalAmount"
+        [busy]="paying"
+        (pay)="payLastOrder($event)"
+      />
     }
     <p><a routerLink="/account/orders">View my orders →</a></p>
   </div>

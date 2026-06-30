@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminApiService, GiftRuleRow } from '../../../core/services/admin-api.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 
 const RULE_LABELS: Record<number, string> = {
   0: 'Amount (min order total)',
@@ -18,6 +19,7 @@ const RULE_LABELS: Record<number, string> = {
 })
 export class AdminGiftRulesComponent implements OnInit {
   private readonly api = inject(AdminApiService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   rules: GiftRuleRow[] = [];
   gifts: { id: number; name: string; description: string; stockQuantity: number }[] = [];
@@ -72,10 +74,16 @@ export class AdminGiftRulesComponent implements OnInit {
     this.draft = {};
   }
 
-  saveRule(): void {
+  async saveRule(): Promise<void> {
     if (this.editId === null) {
       return;
     }
+    const confirmed = await this.confirmDialog.open({
+      title: 'Update rule',
+      message: `Save changes to rule #${this.editId}?`,
+      confirmLabel: 'Save'
+    });
+    if (!confirmed) return;
     this.api
       .updateGiftRule(this.editId, {
         ruleType: this.draft.ruleType,
@@ -94,7 +102,15 @@ export class AdminGiftRulesComponent implements OnInit {
       });
   }
 
-  toggleActive(r: GiftRuleRow): void {
+  async toggleActive(r: GiftRuleRow): Promise<void> {
+    const activating = !r.isActive;
+    const confirmed = await this.confirmDialog.open({
+      title: activating ? 'Activate rule' : 'Deactivate rule',
+      message: `${activating ? 'Activate' : 'Deactivate'} rule #${r.id}?`,
+      confirmLabel: activating ? 'Activate' : 'Deactivate',
+      tone: activating ? 'default' : 'danger'
+    });
+    if (!confirmed) return;
     this.api.setGiftRuleActive(r.id, !r.isActive).subscribe({
       next: () => {
         this.msg = 'Rule status updated.';
@@ -104,8 +120,14 @@ export class AdminGiftRulesComponent implements OnInit {
     });
   }
 
-  deleteRule(r: GiftRuleRow): void {
-    if (!confirm(`Delete rule #${r.id}?`)) {
+  async deleteRule(r: GiftRuleRow): Promise<void> {
+    const confirmed = await this.confirmDialog.open({
+      title: 'Delete rule',
+      message: `Delete rule #${r.id}? This cannot be undone.`,
+      confirmLabel: 'Delete',
+      tone: 'danger'
+    });
+    if (!confirmed) {
       return;
     }
     this.api.deleteGiftRule(r.id).subscribe({
@@ -117,11 +139,17 @@ export class AdminGiftRulesComponent implements OnInit {
     });
   }
 
-  createRule(): void {
+  async createRule(): Promise<void> {
     if (!this.newRule.giftId) {
       this.err = 'Select a gift.';
       return;
     }
+    const confirmed = await this.confirmDialog.open({
+      title: 'Create rule',
+      message: 'Create this gift rule?',
+      confirmLabel: 'Create'
+    });
+    if (!confirmed) return;
     this.api.createGiftRule(this.newRule).subscribe({
       next: () => {
         this.msg = 'Rule created.';
@@ -132,10 +160,16 @@ export class AdminGiftRulesComponent implements OnInit {
     });
   }
 
-  createGift(): void {
+  async createGift(): Promise<void> {
     if (!this.newGift.name.trim()) {
       return;
     }
+    const confirmed = await this.confirmDialog.open({
+      title: 'Create gift',
+      message: `Create gift "${this.newGift.name.trim()}"?`,
+      confirmLabel: 'Create'
+    });
+    if (!confirmed) return;
     this.api.createGift(this.newGift).subscribe({
       next: () => {
         this.msg = 'Gift created.';

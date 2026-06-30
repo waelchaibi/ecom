@@ -1,0 +1,7 @@
+<div class="product-media" [class.product-media--large]="large">
+  @if (imageUrl) {
+    <img [src]="imageUrl" [alt]="name" loading="lazy" />
+  } @else {
+    <div class="product-media__placeholder" aria-hidden="true">{{ name.charAt(0) }}</div>
+  }
+</div>

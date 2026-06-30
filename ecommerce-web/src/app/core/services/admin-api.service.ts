@@ -198,7 +198,7 @@ export class AdminApiService {
   }
 
   getGiftRules(): Observable<GiftRuleRow[]> {
-    return this.http.get<GiftRuleRow[]>(`${this.base}/giftrules`);
+    return this.http.get<GiftRuleRow[]>(`${this.base}/admin/gift-rules`);
   }
 
   createGiftRule(body: {

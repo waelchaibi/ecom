@@ -3,6 +3,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Order } from '../../../core/models/order';
 import { AdminApiService } from '../../../core/services/admin-api.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-admin-order-detail',
@@ -14,6 +15,7 @@ import { AdminApiService } from '../../../core/services/admin-api.service';
 export class AdminOrderDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(AdminApiService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   orderId = 0;
   order: Order | null = null;
@@ -37,10 +39,16 @@ export class AdminOrderDetailComponent implements OnInit {
     });
   }
 
-  confirm(): void {
+  async confirm(): Promise<void> {
     if (!this.order) {
       return;
     }
+    const confirmed = await this.confirmDialog.open({
+      title: 'Confirm payment',
+      message: `Confirm payment for order #${this.order.id}? Gifts will be applied if eligible.`,
+      confirmLabel: 'Confirm payment'
+    });
+    if (!confirmed) return;
     this.err = '';
     this.busy = true;
     this.api.confirmPayment(this.order.id).subscribe({
@@ -55,11 +63,17 @@ export class AdminOrderDetailComponent implements OnInit {
     });
   }
 
-  cancel(): void {
+  async cancel(): Promise<void> {
     if (!this.order) {
       return;
     }
-    if (!confirm(`Cancel order #${this.order.id}? Stock will be restored.`)) {
+    const confirmed = await this.confirmDialog.open({
+      title: 'Cancel order',
+      message: `Cancel order #${this.order.id}? Stock will be restored.`,
+      confirmLabel: 'Cancel order',
+      tone: 'danger'
+    });
+    if (!confirmed) {
       return;
     }
     this.err = '';

@@ -18,7 +18,9 @@
         <a routerLink="/account/login" routerLinkActive="active">Sign in</a>
         <a routerLink="/account/register" routerLinkActive="active" class="nav-cta">Join</a>
       }
-      <a routerLink="/login" class="nav-btn">Admin</a>
+      @if (adminAuth.isAdminSession()) {
+        <a routerLink="/admin/dashboard" class="nav-btn">Admin</a>
+      }
     </nav>
   </div>
 </header>
@@ -26,6 +28,8 @@
 <main class="store-main">
   <router-outlet />
 </main>
+
+<ecom-confirm-dialog />
 
 <footer class="store-footer">
   <div class="store-footer__inner">
@@ -36,6 +40,7 @@
     <div>
       <p><a routerLink="/products">Shop all</a></p>
       <p><a routerLink="/account/login">Customer account</a></p>
+      <p><a routerLink="/login">Admin sign in</a></p>
     </div>
   </div>
 </footer>

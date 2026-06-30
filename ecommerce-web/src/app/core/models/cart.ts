@@ -11,10 +11,11 @@ export interface CartLine {
 export interface Cart {
   items: CartLine[];
   subtotal: number;
+  estimatedTax: number;
+  estimatedShipping: number;
+  estimatedTotal: number;
 }
 
 export interface CartCheckoutPayload {
-  taxAmount: number;
-  shippingAmount: number;
   promotionCode?: string;
 }

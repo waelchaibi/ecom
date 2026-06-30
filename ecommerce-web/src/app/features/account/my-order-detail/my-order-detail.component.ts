@@ -1,19 +1,23 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { PaymentGatewayComponent } from '../../../core/components/payment-gateway/payment-gateway.component';
 import { Order } from '../../../core/models/order';
+import { SimulatePaymentPayload } from '../../../core/models/payment';
 import { CustomerAccountApiService } from '../../../core/services/customer-account-api.service';
+import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 
 @Component({
   selector: 'app-my-order-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, PaymentGatewayComponent],
   templateUrl: './my-order-detail.component.html',
   styleUrl: './my-order-detail.component.scss'
 })
 export class MyOrderDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(CustomerAccountApiService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   orderId = 0;
   order: Order | null = null;
@@ -38,17 +42,18 @@ export class MyOrderDetailComponent implements OnInit {
     });
   }
 
-  pay(): void {
+  pay(payload: SimulatePaymentPayload): void {
     if (!this.order || this.order.status !== 'Pending') {
       return;
     }
     this.busy = true;
     this.msg = '';
-    this.api.payOrder(this.order.id).subscribe({
+    this.err = '';
+    this.api.payOrder(this.order.id, payload).subscribe({
       next: (o) => {
         this.order = o;
         this.busy = false;
-        this.msg = 'Payment simulated successfully. Your order is confirmed.';
+        this.msg = 'Payment successful. Your order is confirmed.';
       },
       error: (e) => {
         this.busy = false;
@@ -64,11 +69,17 @@ export class MyOrderDetailComponent implements OnInit {
     return 'badge badge-confirmed';
   }
 
-  cancel(): void {
+  async cancel(): Promise<void> {
     if (!this.order || this.order.status !== 'Pending') {
       return;
     }
-    if (!confirm('Cancel this order and release reserved stock?')) {
+    const confirmed = await this.confirmDialog.open({
+      title: 'Cancel order',
+      message: 'Cancel this order and release reserved stock?',
+      confirmLabel: 'Cancel order',
+      tone: 'danger'
+    });
+    if (!confirmed) {
       return;
     }
     this.busy = true;

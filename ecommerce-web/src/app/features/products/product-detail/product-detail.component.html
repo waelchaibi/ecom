@@ -1,0 +1,58 @@
+<p class="back-link">
+  <a [routerLink]="shopLink()" [queryParams]="shopQueryParams()">← Back to shop</a>
+</p>
+
+@if (loading) {
+  <div class="detail-skeleton surface-card" aria-hidden="true"></div>
+}
+
+@if (error && !loading) {
+  <div class="alert alert-error">{{ error }}</div>
+}
+
+@if (cartMsg) {
+  <div class="alert alert-success">{{ cartMsg }} <a routerLink="/cart">View cart →</a></div>
+}
+
+@if (product && !loading) {
+  <article class="product-detail surface-card">
+    <div class="product-detail__media">
+      <ecom-product-media [name]="product.name" [imageUrl]="product.imageUrl" [large]="true" />
+      @if (product.categoryName) {
+        <span class="product-detail__badge">{{ product.categoryName }}</span>
+      }
+    </div>
+
+    <div class="product-detail__info">
+      <h1>{{ product.name }}</h1>
+      <p class="product-detail__price">{{ product.price | number: '1.2-2' }}</p>
+      <p class="product-detail__stock" [class.low]="product.stockQuantity < 5">
+        @if (product.stockQuantity > 0) {
+          {{ product.stockQuantity }} in stock
+        } @else {
+          Out of stock
+        }
+      </p>
+      <p class="product-detail__desc">{{ product.description }}</p>
+
+      <div class="product-detail__actions">
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="addToCart()"
+          [disabled]="product.stockQuantity < 1"
+        >
+          Add to cart
+        </button>
+        <a
+          class="btn-secondary"
+          routerLink="/order"
+          [queryParams]="{ productId: product.id }"
+          [class.disabled]="product.stockQuantity < 1"
+        >
+          Buy now
+        </a>
+      </div>
+    </div>
+  </article>
+}

@@ -1,7 +1,10 @@
 <div class="auth-page">
   <div class="auth-card">
     <h1>Welcome back</h1>
-    <p class="hint">Sign in to place orders and track your purchases.</p>
+    <p class="hint">Sign in with your <strong>customer email</strong> to place orders and track purchases.</p>
+    <p class="hint small">
+      Admin console? Use <a routerLink="/login">admin sign in</a> (username <code>admin</code>, not email).
+    </p>
 
     @if (error) {
       <div class="alert alert-error">{{ error }}</div>

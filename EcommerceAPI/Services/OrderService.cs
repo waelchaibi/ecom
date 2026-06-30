@@ -15,6 +15,8 @@ public class OrderService : IOrderService
     private readonly IGiftRepository _giftRepository;
     private readonly AppDbContext _context;
     private readonly IGiftAssignmentService _giftAssignmentService;
+    private readonly ICheckoutPricingService _checkoutPricing;
+    private readonly IPaymentGatewayService _paymentGateway;
     private readonly ILogger<OrderService> _logger;
 
     public OrderService(
@@ -23,6 +25,8 @@ public class OrderService : IOrderService
         IGiftRepository giftRepository,
         AppDbContext context,
         IGiftAssignmentService giftAssignmentService,
+        ICheckoutPricingService checkoutPricing,
+        IPaymentGatewayService paymentGateway,
         ILogger<OrderService> logger)
     {
         _orderRepository = orderRepository;
@@ -30,6 +34,8 @@ public class OrderService : IOrderService
         _giftRepository = giftRepository;
         _context = context;
         _giftAssignmentService = giftAssignmentService;
+        _checkoutPricing = checkoutPricing;
+        _paymentGateway = paymentGateway;
         _logger = logger;
     }
 
@@ -80,9 +86,6 @@ public class OrderService : IOrderService
 
         var promo = string.IsNullOrWhiteSpace(dto.PromotionCode) ? null : dto.PromotionCode.Trim();
 
-        if (dto.TaxAmount < 0 || dto.ShippingAmount < 0)
-            throw new ArgumentException("Tax and shipping cannot be negative");
-
         decimal subtotalAmount = 0;
         var orderItems = new List<OrderItem>();
         var utc = DateTime.UtcNow;
@@ -112,9 +115,10 @@ public class OrderService : IOrderService
             subtotalAmount += product.Price * item.Quantity;
         }
 
-        var taxAmount = dto.TaxAmount;
-        var shippingAmount = dto.ShippingAmount;
-        var totalAmount = subtotalAmount + taxAmount + shippingAmount;
+        var pricing = _checkoutPricing.Calculate(subtotalAmount);
+        var taxAmount = pricing.TaxAmount;
+        var shippingAmount = pricing.ShippingAmount;
+        var totalAmount = pricing.TotalAmount;
 
         var order = new Order
         {
@@ -317,9 +321,19 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task<OrderDTO> PayOrderAsCustomerAsync(int customerId, int orderId)
+    public async Task<OrderDTO> PayOrderAsCustomerAsync(int customerId, int orderId, SimulatePaymentDTO payment)
     {
-        await EnsureOrderOwnedByCustomerAsync(customerId, orderId);
+        if (payment is null)
+            throw new ArgumentException("Payment details are required.");
+
+        var order = await EnsureOrderOwnedByCustomerAsync(customerId, orderId);
+        if (order.Status != OrderStatuses.Pending)
+        {
+            throw new InvalidOperationException(
+                $"Only orders awaiting payment can be paid. Current status: '{order.Status}'.");
+        }
+
+        await _paymentGateway.ProcessCardPaymentAsync(payment, order.TotalAmount, orderId);
         return await ConfirmPaymentAsync(orderId);
     }
 

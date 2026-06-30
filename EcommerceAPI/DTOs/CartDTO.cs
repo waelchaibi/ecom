@@ -4,6 +4,9 @@ public class CartDTO
 {
     public List<CartLineDTO> Items { get; set; } = new();
     public decimal Subtotal { get; set; }
+    public decimal EstimatedTax { get; set; }
+    public decimal EstimatedShipping { get; set; }
+    public decimal EstimatedTotal { get; set; }
 }
 
 public class CartLineDTO
@@ -25,7 +28,5 @@ public class CartItemUpsertDTO
 
 public class CartCheckoutDTO
 {
-    public decimal TaxAmount { get; set; }
-    public decimal ShippingAmount { get; set; }
     public string? PromotionCode { get; set; }
 }
