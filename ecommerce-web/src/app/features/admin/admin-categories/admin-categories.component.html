@@ -1,32 +1,52 @@
-<h1>Categories</h1>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 m-b-24">
+  <h4 class="page-title m-b-0">Categories</h4>
+</div>
 
 @if (err) {
-  <p class="err">{{ err }}</p>
+  <div class="bg-light-error text-error rounded p-12 m-b-24">{{ err }}</div>
 }
 
-<form class="row" (ngSubmit)="create()">
-  <input type="text" [(ngModel)]="name" name="name" placeholder="Name" required />
-  <input type="text" [(ngModel)]="description" name="description" placeholder="Description" />
-  <button type="submit">Add</button>
-</form>
+<mat-card class="cardWithShadow m-b-24">
+  <mat-card-content>
+    <form class="d-flex flex-wrap gap-3 align-items-end" (ngSubmit)="create()">
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label>Name</mat-label>
+        <input matInput type="text" [(ngModel)]="name" name="name" required />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label>Description</mat-label>
+        <input matInput type="text" [(ngModel)]="description" name="description" />
+      </mat-form-field>
+      <button mat-flat-button color="primary" type="submit">Add</button>
+    </form>
+  </mat-card-content>
+</mat-card>
 
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>Description</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    @for (c of categories; track c.id) {
-      <tr>
-        <td>{{ c.id }}</td>
-        <td>{{ c.name }}</td>
-        <td>{{ c.description }}</td>
-        <td><button type="button" class="ghost" (click)="remove(c.id)">Delete</button></td>
-      </tr>
-    }
-  </tbody>
-</table>
+<mat-card class="cardWithShadow">
+  <mat-card-content>
+    <div class="table-responsive">
+      <table class="w-100 admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of categories; track c.id) {
+            <tr>
+              <td>{{ c.id }}</td>
+              <td>{{ c.name }}</td>
+              <td>{{ c.description }}</td>
+              <td>
+                <button mat-button color="warn" type="button" (click)="remove(c.id)">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </mat-card-content>
+</mat-card>

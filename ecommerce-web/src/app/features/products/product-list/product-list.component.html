@@ -1,99 +1,120 @@
 <section class="shop-hero">
-  <div class="shop-hero__content">
-    <p class="shop-hero__eyebrow">New season</p>
-    <h1>Discover what you love</h1>
+  <div class="shop-hero__glow" aria-hidden="true"></div>
+  <div class="shop-hero__inner">
+    <p class="shop-hero__brand">Shayma</p>
+    <h1 class="shop-hero__title">Discover what you love</h1>
     <p class="shop-hero__lead">
       Curated tech and accessories with fast checkout and rewards on every order.
     </p>
+    <div class="shop-hero__cta">
+      <button type="button" mat-flat-button color="primary" class="shop-hero__btn" (click)="scrollToCatalog()">
+        Browse collection
+      </button>
+      @if (!auth.isLoggedIn()) {
+        <a mat-stroked-button class="shop-hero__btn shop-hero__btn--ghost" routerLink="/account/register">
+          Create account
+        </a>
+      }
+    </div>
   </div>
 </section>
 
-@if (categories.length) {
-  <div class="chip-row shop-filters">
-    <button
-      type="button"
-      class="chip"
-      [class.active]="categoryId === null"
-      (click)="selectCategory(null)"
-    >
-      All
-    </button>
-    @for (c of categories; track c.id) {
-      <button
-        type="button"
-        class="chip"
-        [class.active]="categoryId === c.id"
-        (click)="selectCategory(c.id)"
-      >
-        {{ c.name }}
-      </button>
-    }
-  </div>
-}
-
-@if (cartMsg) {
-  <div class="alert alert-success">{{ cartMsg }} <a routerLink="/cart">View cart →</a></div>
-}
-
-@if (loading) {
-  <div class="skeleton-grid" aria-hidden="true">
-    @for (i of [1, 2, 3, 4, 5, 6]; track i) {
-      <div class="skeleton-card"></div>
-    }
-  </div>
-}
-
-@if (error) {
-  <div class="alert alert-error">{{ error }}</div>
-}
-
-@if (!loading && !error) {
-  <div class="product-grid">
-    @for (p of products; track p.id) {
-      <article class="product-card surface-card">
-        <a class="product-card__link" [routerLink]="productLink(p)" [queryParams]="productQueryParams()">
-          <div class="product-card__media">
-            <ecom-product-media [name]="p.name" [imageUrl]="p.imageUrl" />
-            @if (p.categoryName) {
-              <span class="product-card__badge">{{ p.categoryName }}</span>
-            }
-          </div>
-          <div class="product-card__body">
-            <h2>{{ p.name }}</h2>
-            <p class="product-card__desc">{{ p.description }}</p>
-            <div class="product-card__footer">
-              <div class="product-card__price">
-                <span class="amount">{{ p.price | number: '1.2-2' }}</span>
-                <span class="stock" [class.low]="p.stockQuantity < 5">
-                  {{ p.stockQuantity > 0 ? p.stockQuantity + ' in stock' : 'Out of stock' }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </a>
-        <div class="product-card__actions">
+<section id="catalog" class="shop-catalog">
+  <div class="store-page">
+    @if (categories.length) {
+      <div class="shop-filters m-b-24">
+        <button
+          type="button"
+          mat-stroked-button
+          [color]="categoryId === null ? 'primary' : undefined"
+          (click)="selectCategory(null)"
+        >
+          All
+        </button>
+        @for (c of categories; track c.id) {
           <button
             type="button"
-            class="btn-primary btn-sm"
-            (click)="addToCart(p)"
-            [disabled]="p.stockQuantity < 1"
+            mat-stroked-button
+            [color]="categoryId === c.id ? 'primary' : undefined"
+            (click)="selectCategory(c.id)"
           >
-            Add to cart
+            {{ c.name }}
           </button>
-          <a class="btn-ghost btn-sm" routerLink="/order" [queryParams]="{ productId: p.id }">Buy now</a>
-          <a
-            class="btn-ghost btn-sm"
-            [routerLink]="productLink(p)"
-            [queryParams]="productQueryParams()"
-          >
-            Details
-          </a>
-        </div>
-      </article>
+        }
+      </div>
+    }
+
+    @if (cartMsg) {
+      <div class="bg-light-success text-success rounded p-12 m-b-16">
+        {{ cartMsg }} <a routerLink="/cart" class="text-primary f-w-600">View cart →</a>
+      </div>
+    }
+
+    @if (loading) {
+      <div class="skeleton-grid" aria-hidden="true">
+        @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+          <div class="skeleton-card"></div>
+        }
+      </div>
+    }
+
+    @if (error) {
+      <div class="bg-light-error text-error rounded p-12 m-b-16">{{ error }}</div>
+    }
+
+    @if (!loading && !error) {
+      <div class="product-grid">
+        @for (p of products; track p.id) {
+          <mat-card class="cardWithShadow product-card">
+            <a class="product-card__link" [routerLink]="productLink(p)" [queryParams]="productQueryParams()">
+              <div class="product-card__media">
+                <ecom-product-media [name]="p.name" [imageUrl]="p.imageUrl" />
+                @if (p.categoryName) {
+                  <mat-chip class="product-card__badge">{{ p.categoryName }}</mat-chip>
+                }
+              </div>
+              <mat-card-content>
+                <h5 class="mat-subtitle-1 f-w-600 m-b-4">{{ p.name }}</h5>
+                <p class="product-card__desc f-s-14 text-muted m-b-0">{{ p.description }}</p>
+                <div class="product-card__footer m-t-16">
+                  <div class="product-card__price">
+                    <span class="amount f-w-600">{{ p.price | number: '1.2-2' }}</span>
+                    <span class="stock f-s-12" [class.low]="p.stockQuantity < 5">
+                      {{ p.stockQuantity > 0 ? p.stockQuantity + ' in stock' : 'Out of stock' }}
+                    </span>
+                  </div>
+                </div>
+              </mat-card-content>
+            </a>
+            <mat-card-actions class="product-card__actions">
+              <button
+                type="button"
+                mat-flat-button
+                color="primary"
+                (click)="addToCart(p)"
+                [disabled]="p.stockQuantity < 1"
+              >
+                Add to cart
+              </button>
+              <a
+                mat-stroked-button
+                routerLink="/order"
+                [queryParams]="{ productId: p.id }"
+                [class.disabled]="p.stockQuantity < 1"
+                [attr.aria-disabled]="p.stockQuantity < 1"
+                (click)="p.stockQuantity < 1 && $event.preventDefault()"
+              >
+                Buy now
+              </a>
+              <a mat-stroked-button [routerLink]="productLink(p)" [queryParams]="productQueryParams()">Details</a>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+
+      @if (products.length === 0) {
+        <p class="text-muted text-center p-32">No products in this category yet.</p>
+      }
     }
   </div>
-
-  @if (products.length === 0) {
-    <p class="muted shop-empty">No products in this category yet.</p>
-  }
-}
+</section>

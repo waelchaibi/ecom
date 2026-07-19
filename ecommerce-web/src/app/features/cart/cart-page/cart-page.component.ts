@@ -3,17 +3,19 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PaymentGatewayComponent } from '../../../core/components/payment-gateway/payment-gateway.component';
+import { MaterialModule } from '../../../shared/material.module';
 import { CartApiService } from '../../../core/services/cart-api.service';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { CustomerAccountApiService } from '../../../core/services/customer-account-api.service';
 import { Cart } from '../../../core/models/cart';
 import { Order } from '../../../core/models/order';
 import { SimulatePaymentPayload } from '../../../core/models/payment';
+import { resolveMediaUrl } from '../../../core/utils/media-url';
 
 @Component({
   selector: 'ecom-cart-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, PaymentGatewayComponent],
+  imports: [CommonModule, FormsModule, RouterLink, PaymentGatewayComponent, MaterialModule],
   templateUrl: './cart-page.component.html',
   styleUrl: './cart-page.component.scss'
 })
@@ -31,6 +33,10 @@ export class CartPageComponent implements OnInit {
   error: string | null = null;
   message: string | null = null;
   lastOrder: Order | null = null;
+
+  mediaSrc(url: string | null | undefined): string | null {
+    return resolveMediaUrl(url);
+  }
 
   ngOnInit(): void {
     this.reload();

@@ -7,7 +7,7 @@ export const customerJwtInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(CustomerAuthService);
   const token = auth.token();
   const url = req.url;
-  const needsAuth = url.includes('/api/me') || url.includes('/api/orders');
+  const needsAuth = url.includes('/api/me') || url.includes('/api/orders') || url.includes('/api/chat');
   if (token && needsAuth && jwtHasRole(token, 'Customer')) {
     req = req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
   }

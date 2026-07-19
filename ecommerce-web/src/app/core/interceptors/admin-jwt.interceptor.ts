@@ -9,7 +9,7 @@ export const adminJwtInterceptor: HttpInterceptorFn = (req, next) => {
   const token = auth.token();
   const url = req.url;
   const needsAuth =
-    url.includes('/api/admin') || url.includes('/api/analytics');
+    url.includes('/api/admin') || url.includes('/api/analytics') || url.includes('/api/chat');
   if (token && needsAuth && jwtHasRole(token, 'Admin')) {
     req = req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
   }

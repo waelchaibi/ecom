@@ -55,6 +55,7 @@ public class CustomerService : ICustomerService
         Id = c.Id,
         Name = c.Name,
         Email = c.Email,
-        Phone = c.Phone
+        Phone = c.Phone,
+        IdentityCard = c.IdentityCard
     };
 }

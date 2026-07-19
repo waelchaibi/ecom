@@ -1,20 +1,30 @@
-<div class="admin-shell">
-  <aside class="side">
-    <div class="side-head">
-      <strong>Admin</strong>
-      <button type="button" class="logout" (click)="logout()">Logout</button>
+<mat-sidenav-container class="mainWrapper blue_theme light-theme" autosize autoFocus dir="ltr">
+  <mat-sidenav
+    #leftsidenav
+    [mode]="isOver ? 'over' : 'side'"
+    [opened]="!isOver"
+    (openedChange)="onSidenavOpenedChange($event)"
+    (closedStart)="onSidenavClosedStart()"
+    class="sidebarNav"
+  >
+    <div class="flex-layout">
+      <ecom-admin-sidebar (toggleMobileNav)="sidenav.toggle()" [showToggle]="isOver" />
+      <div class="sidebar-scroll">
+        <nav class="sidebar-list">
+          @for (item of navItems; track item.displayName || item.navCap) {
+            <ecom-admin-nav-item [item]="item" (notify)="onNavNotify()" />
+          }
+        </nav>
+      </div>
     </div>
-    <nav>
-      <a routerLink="/admin/dashboard" routerLinkActive="active">Dashboard</a>
-      <a routerLink="/admin/products" routerLinkActive="active">Products</a>
-      <a routerLink="/admin/categories" routerLinkActive="active">Categories</a>
-      <a routerLink="/admin/gift-rules" routerLinkActive="active">Gift rules</a>
-      <a routerLink="/admin/orders" routerLinkActive="active">Orders</a>
-      <a routerLink="/admin/audit-logs" routerLinkActive="active">Audit log</a>
-      <a routerLink="/admin/customers" routerLinkActive="active">Customers</a>
-    </nav>
-  </aside>
-  <div class="main">
-    <router-outlet />
-  </div>
-</div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="contentWrapper">
+    <ecom-admin-header [showToggle]="!isOver" (toggleMobileNav)="sidenav.toggle()" />
+    <main class="pageWrapper maxWidth">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+<ecom-chat-widget />

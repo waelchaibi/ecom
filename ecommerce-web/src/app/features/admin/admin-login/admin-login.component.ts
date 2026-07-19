@@ -3,11 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AdminAuthService } from '../../../core/services/admin-auth.service';
 import { AuthCoordinatorService } from '../../../core/services/auth-coordinator.service';
+import { MaterialModule } from '../../../shared/material.module';
 
 @Component({
   selector: 'app-admin-login',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, MaterialModule],
   templateUrl: './admin-login.component.html',
   styleUrl: './admin-login.component.scss'
 })

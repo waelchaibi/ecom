@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductMediaComponent } from '../../../core/components/product-media/product-media.component';
+import { MaterialModule } from '../../../shared/material.module';
 import { Product } from '../../../core/models/product';
 import { CartApiService } from '../../../core/services/cart-api.service';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
@@ -11,7 +12,7 @@ import { ProductApiService } from '../../../core/services/product-api.service';
 @Component({
   selector: 'ecom-product-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, ProductMediaComponent],
+  imports: [CommonModule, RouterLink, ProductMediaComponent, MaterialModule],
   templateUrl: './product-detail.component.html',
   styleUrl: './product-detail.component.scss'
 })

@@ -7,13 +7,14 @@ import { CartApiService } from '../../../core/services/cart-api.service';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { CustomerAuthService } from '../../../core/services/customer-auth.service';
 import { ProductMediaComponent } from '../../../core/components/product-media/product-media.component';
+import { MaterialModule } from '../../../shared/material.module';
 import { Product } from '../../../core/models/product';
 import { Category } from '../../../core/models/category';
 
 @Component({
   selector: 'ecom-product-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, ProductMediaComponent],
+  imports: [CommonModule, RouterLink, ProductMediaComponent, MaterialModule],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss'
 })
@@ -32,6 +33,10 @@ export class ProductListComponent implements OnInit {
   error: string | null = null;
   cartMsg: string | null = null;
   loading = true;
+
+  scrollToCatalog(): void {
+    document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   ngOnInit(): void {
     this.categoriesApi.getAll().subscribe({

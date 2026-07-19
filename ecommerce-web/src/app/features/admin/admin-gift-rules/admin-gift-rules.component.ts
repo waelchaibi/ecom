@@ -3,6 +3,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminApiService, GiftRuleRow } from '../../../core/services/admin-api.service';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
+import { MaterialModule } from '../../../shared/material.module';
 
 const RULE_LABELS: Record<number, string> = {
   0: 'Amount (min order total)',
@@ -13,7 +14,7 @@ const RULE_LABELS: Record<number, string> = {
 @Component({
   selector: 'app-admin-gift-rules',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MaterialModule],
   templateUrl: './admin-gift-rules.component.html',
   styleUrl: './admin-gift-rules.component.scss'
 })

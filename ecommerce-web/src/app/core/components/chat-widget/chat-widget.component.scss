@@ -1,0 +1,124 @@
+.chat-root {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.chat-fab {
+  box-shadow: 0 8px 24px rgba(93, 135, 255, 0.35) !important;
+}
+
+.chat-panel {
+  width: min(420px, calc(100vw - 2rem));
+  height: min(560px, calc(100vh - 6rem));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.chat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5eaef;
+  background: #f6f9fc;
+}
+
+.chat-head-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.chat-err {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  color: #fa896b;
+  background: #fdede8;
+  font-size: 0.85rem;
+}
+
+.chat-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  min-height: 0;
+}
+
+.chat-threads {
+  border-right: 1px solid #e5eaef;
+  overflow: auto;
+  padding: 0.4rem;
+}
+
+.thread {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 0.45rem 0.4rem;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  margin-bottom: 0.2rem;
+  color: #2a3547;
+}
+
+.thread.active,
+.thread:hover {
+  background: rgba(93, 135, 255, 0.1);
+  color: #5d87ff;
+}
+
+.chat-messages {
+  overflow: auto;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.bubble {
+  max-width: 95%;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  background: #f6f9fc;
+}
+
+.bubble.user {
+  align-self: flex-end;
+  background: rgba(93, 135, 255, 0.12);
+}
+
+.bubble .role {
+  display: block;
+  font-size: 0.7rem;
+  opacity: 0.7;
+  margin-bottom: 0.2rem;
+}
+
+.bubble p {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.9rem;
+}
+
+.chat-compose {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.65rem;
+  border-top: 1px solid #e5eaef;
+}
+
+.chat-input {
+  flex: 1;
+  margin-bottom: 0 !important;
+}

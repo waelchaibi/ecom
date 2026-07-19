@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PaymentGatewayComponent } from '../../../core/components/payment-gateway/payment-gateway.component';
+import { MaterialModule } from '../../../shared/material.module';
 import { Order } from '../../../core/models/order';
 import { SimulatePaymentPayload } from '../../../core/models/payment';
 import { CustomerAccountApiService } from '../../../core/services/customer-account-api.service';
@@ -10,7 +11,7 @@ import { ConfirmDialogService } from '../../../core/services/confirm-dialog.serv
 @Component({
   selector: 'app-my-order-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, PaymentGatewayComponent],
+  imports: [CommonModule, RouterLink, PaymentGatewayComponent, MaterialModule],
   templateUrl: './my-order-detail.component.html',
   styleUrl: './my-order-detail.component.scss'
 })

@@ -1,122 +1,226 @@
-<h1>Products</h1>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 m-b-24">
+  <h4 class="page-title m-b-0">Products</h4>
+</div>
+
 @if (msg) {
-  <p class="ok">{{ msg }}</p>
+  <div class="bg-light-success text-success rounded p-12 m-b-24">{{ msg }}</div>
 }
 @if (err) {
-  <p class="err">{{ err }}</p>
+  <div class="bg-light-error text-error rounded p-12 m-b-24">{{ err }}</div>
 }
 
-<h2>Add product</h2>
-<form class="add-form" (ngSubmit)="createProduct()">
-  <label>
-    Name
-    <input [(ngModel)]="newProduct.name" name="npn" required />
-  </label>
-  <label>
-    Description
-    <input [(ngModel)]="newProduct.description" name="npd" />
-  </label>
-  <label>
-    Category
-    <select [(ngModel)]="newProduct.categoryId" name="npc">
-      <option [ngValue]="null">None</option>
-      @for (c of categories; track c.id) {
-        <option [ngValue]="c.id">{{ c.name }}</option>
-      }
-    </select>
-  </label>
-  <label>
-    Image URL
-    <input type="url" [(ngModel)]="newProduct.imageUrl" name="npi" placeholder="https://…" />
-  </label>
-  <label>
-    Price
-    <input type="number" step="0.01" min="0.01" [(ngModel)]="newProduct.price" name="npp" />
-  </label>
-  <label>
-    Stock
-    <input type="number" min="0" [(ngModel)]="newProduct.stockQuantity" name="nps" />
-  </label>
-  <button type="submit">Create</button>
-</form>
+<mat-card class="cardWithShadow m-b-24">
+  <mat-card-content>
+    <h5 class="f-w-600 m-b-4">Add product</h5>
+    <p class="text-muted f-s-14 m-b-24">Fill in the details and upload a product photo.</p>
 
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>Category</th>
-      <th>Price</th>
-      <th>Stock</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    @for (p of products; track p.id) {
-      <tr>
-        <td>{{ p.id }}</td>
-        <td>
-          @if (editId === p.id) {
-            <input [(ngModel)]="draft.name" name="n{{ p.id }}" />
-          } @else {
-            {{ p.name }}
-          }
-        </td>
-        <td>
-          @if (editId === p.id) {
-            <select [(ngModel)]="draft.categoryId" name="cat{{ p.id }}">
-              <option [ngValue]="null">None</option>
-              @for (c of categories; track c.id) {
-                <option [ngValue]="c.id">{{ c.name }}</option>
-              }
-            </select>
-          } @else {
-            {{ categoryLabel(p) }}
-          }
-        </td>
-        <td>
-          @if (editId === p.id) {
-            <input type="number" step="0.01" [(ngModel)]="draft.price" name="pr{{ p.id }}" />
-          } @else {
-            {{ p.price | number: '1.2-2' }}
-          }
-        </td>
-        <td>
-          @if (editId === p.id) {
-            <input type="number" [(ngModel)]="draft.stockQuantity" name="sq{{ p.id }}" />
-          } @else {
-            {{ p.stockQuantity }}
-          }
-        </td>
-        <td class="acts">
-          @if (editId === p.id) {
-            <button type="button" (click)="save()">Save</button>
-            <button type="button" (click)="cancelEdit()">Cancel</button>
-          } @else {
-            <button type="button" (click)="startEdit(p)">Edit</button>
-            <button type="button" class="danger" (click)="delete(p)">Delete</button>
-          }
-          <div class="stock-row">
-            <input type="number" min="0" [(ngModel)]="stockInput[p.id]" name="st{{ p.id }}" />
-            <button type="button" (click)="applyStock(p)">Set stock</button>
+    <form class="product-form" (ngSubmit)="createProduct()">
+      <div class="product-form__grid">
+        <div class="product-form__fields">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Name</mat-label>
+            <input matInput [(ngModel)]="newProduct.name" name="npn" required />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Description</mat-label>
+            <textarea matInput rows="3" [(ngModel)]="newProduct.description" name="npd"></textarea>
+          </mat-form-field>
+
+          <div class="product-form__row">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Category</mat-label>
+              <mat-select [(ngModel)]="newProduct.categoryId" name="npc">
+                <mat-option [value]="null">None</mat-option>
+                @for (c of categories; track c.id) {
+                  <mat-option [value]="c.id">{{ c.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Price</mat-label>
+              <input matInput type="number" step="0.01" min="0.01" [(ngModel)]="newProduct.price" name="npp" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Stock</mat-label>
+              <input matInput type="number" min="0" [(ngModel)]="newProduct.stockQuantity" name="nps" />
+            </mat-form-field>
           </div>
-        </td>
-      </tr>
-      @if (editId === p.id) {
-        <tr class="desc-row">
-          <td colspan="6">
-            <label>
-              Description
-              <textarea [(ngModel)]="draft.description" name="d{{ p.id }}" rows="2"></textarea>
-            </label>
-            <label>
-              Image URL
-              <input type="url" [(ngModel)]="draft.imageUrl" name="img{{ p.id }}" />
-            </label>
-          </td>
-        </tr>
-      }
-    }
-  </tbody>
-</table>
+        </div>
 
+        <div class="product-form__media">
+          <span class="product-form__media-label">Product image</span>
+          <input
+            #newImageInput
+            class="sr-only"
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            (change)="onNewImageSelected($event)"
+          />
+
+          @if (newImagePreview || newProduct.imageUrl) {
+            <div class="upload-preview">
+              <img [src]="newImagePreview || mediaSrc(newProduct.imageUrl)" alt="Preview" />
+              <div class="upload-preview__meta">
+                <span class="f-s-14 f-w-600">{{ newImageFile?.name || 'Selected image' }}</span>
+                <div class="upload-preview__actions">
+                  <button mat-stroked-button type="button" (click)="newImageInput.click()">Replace</button>
+                  <button mat-button type="button" color="warn" (click)="clearNewImage(newImageInput)">Remove</button>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <button type="button" class="upload-dropzone" (click)="newImageInput.click()">
+              <span class="upload-dropzone__icon">+</span>
+              <span class="upload-dropzone__title">Upload image</span>
+              <span class="upload-dropzone__hint">JPEG, PNG, WebP or GIF · max 5 MB</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="product-form__actions">
+        <button mat-flat-button color="primary" type="submit" [disabled]="uploading">
+          {{ uploading ? 'Saving…' : 'Create product' }}
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow">
+  <mat-card-content>
+    <div class="table-responsive">
+      <table class="w-100 admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of products; track p.id) {
+            <tr>
+              <td>{{ p.id }}</td>
+              <td>
+                @if (mediaSrc(p.imageUrl); as src) {
+                  <img class="product-thumb" [src]="src" [alt]="p.name" />
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+              <td>
+                @if (editId === p.id) {
+                  <mat-form-field appearance="outline" class="w-100 table-field">
+                    <input matInput [(ngModel)]="draft.name" name="n{{ p.id }}" />
+                  </mat-form-field>
+                } @else {
+                  {{ p.name }}
+                }
+              </td>
+              <td>
+                @if (editId === p.id) {
+                  <mat-form-field appearance="outline" class="w-100 table-field">
+                    <mat-select [(ngModel)]="draft.categoryId" name="cat{{ p.id }}">
+                      <mat-option [value]="null">None</mat-option>
+                      @for (c of categories; track c.id) {
+                        <mat-option [value]="c.id">{{ c.name }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                } @else {
+                  {{ categoryLabel(p) }}
+                }
+              </td>
+              <td>
+                @if (editId === p.id) {
+                  <mat-form-field appearance="outline" class="table-field">
+                    <input matInput type="number" step="0.01" [(ngModel)]="draft.price" name="pr{{ p.id }}" />
+                  </mat-form-field>
+                } @else {
+                  {{ p.price | number: '1.2-2' }}
+                }
+              </td>
+              <td>
+                @if (editId === p.id) {
+                  <mat-form-field appearance="outline" class="table-field">
+                    <input matInput type="number" [(ngModel)]="draft.stockQuantity" name="sq{{ p.id }}" />
+                  </mat-form-field>
+                } @else {
+                  {{ p.stockQuantity }}
+                }
+              </td>
+              <td class="acts">
+                @if (editId === p.id) {
+                  <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="uploading">
+                    {{ uploading ? 'Saving…' : 'Save' }}
+                  </button>
+                  <button mat-stroked-button type="button" (click)="cancelEdit()" [disabled]="uploading">Cancel</button>
+                } @else {
+                  <button mat-stroked-button type="button" (click)="startEdit(p)">Edit</button>
+                  <button mat-button color="warn" type="button" (click)="delete(p)">Delete</button>
+                }
+                <div class="stock-row">
+                  <mat-form-field appearance="outline" class="table-field stock-field" subscriptSizing="dynamic">
+                    <input matInput type="number" min="0" [(ngModel)]="stockInput[p.id]" name="st{{ p.id }}" />
+                  </mat-form-field>
+                  <button mat-stroked-button type="button" (click)="applyStock(p)">Set stock</button>
+                </div>
+              </td>
+            </tr>
+            @if (editId === p.id) {
+              <tr class="desc-row">
+                <td colspan="7">
+                  <div class="edit-extra">
+                    <mat-form-field appearance="outline" class="edit-extra__desc">
+                      <mat-label>Description</mat-label>
+                      <textarea matInput [(ngModel)]="draft.description" name="d{{ p.id }}" rows="3"></textarea>
+                    </mat-form-field>
+
+                    <div class="product-form__media edit-extra__media">
+                      <span class="product-form__media-label">Product image</span>
+                      <input
+                        #editImageInput
+                        class="sr-only"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        (change)="onEditImageSelected($event)"
+                      />
+
+                      @if (editImagePreview || draft.imageUrl) {
+                        <div class="upload-preview">
+                          <img [src]="editImagePreview || mediaSrc(draft.imageUrl)" alt="Preview" />
+                          <div class="upload-preview__meta">
+                            <span class="f-s-14 f-w-600">{{ editImageFile?.name || 'Current image' }}</span>
+                            <div class="upload-preview__actions">
+                              <button mat-stroked-button type="button" (click)="editImageInput.click()">Replace</button>
+                              <button mat-button type="button" color="warn" (click)="clearEditImage(editImageInput)">
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      } @else {
+                        <button type="button" class="upload-dropzone upload-dropzone--compact" (click)="editImageInput.click()">
+                          <span class="upload-dropzone__title">Upload image</span>
+                          <span class="upload-dropzone__hint">Optional · max 5 MB</span>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </mat-card-content>
+</mat-card>

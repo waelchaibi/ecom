@@ -1,3 +1,4 @@
+using ClosedXML.Excel;
 using EcommerceAPI.Data;
 using EcommerceAPI.DTOs;
 using EcommerceAPI.Models;
@@ -138,5 +139,83 @@ public sealed class AnalyticsService : IAnalyticsService
 
         await w.FlushAsync();
         return ms.ToArray();
+    }
+
+    public async Task<byte[]> ExportDashboardExcelAsync(int lowStockThreshold = 10, CancellationToken cancellationToken = default)
+    {
+        var d = await GetDashboardAsync(lowStockThreshold, cancellationToken);
+        using var wb = new XLWorkbook();
+
+        var metrics = wb.Worksheets.Add("Metrics");
+        metrics.Cell(1, 1).Value = "metric";
+        metrics.Cell(1, 2).Value = "value";
+        metrics.Cell(2, 1).Value = "totalRevenue";
+        metrics.Cell(2, 2).Value = d.Sales.TotalRevenue;
+        metrics.Cell(3, 1).Value = "orderCount";
+        metrics.Cell(3, 2).Value = d.Sales.OrderCount;
+        metrics.Cell(4, 1).Value = "averageOrderValue";
+        metrics.Cell(4, 2).Value = d.Sales.AverageOrderValue;
+
+        WriteSheet(
+            wb.Worksheets.Add("BestSelling"),
+            new[] { "productId", "productName", "quantitySold" },
+            d.BestSellingProducts.Select(p => new object[] { p.ProductId, p.ProductName, p.QuantitySold }));
+
+        WriteSheet(
+            wb.Worksheets.Add("LowStock"),
+            new[] { "productId", "productName", "stockQuantity" },
+            d.LowStockProducts.Select(p => new object[] { p.ProductId, p.ProductName, p.StockQuantity }));
+
+        WriteSheet(
+            wb.Worksheets.Add("TopByOrders"),
+            new[] { "customerId", "customerName", "orderCount" },
+            d.TopCustomersByOrders.Select(c => new object[] { c.CustomerId, c.CustomerName, c.OrderCount }));
+
+        WriteSheet(
+            wb.Worksheets.Add("TopByRevenue"),
+            new[] { "customerId", "customerName", "totalPurchaseValue" },
+            d.TopCustomersByRevenue.Select(c => new object[] { c.CustomerId, c.CustomerName, c.TotalPurchaseValue }));
+
+        WriteSheet(
+            wb.Worksheets.Add("GiftAssignments"),
+            new[] { "giftId", "giftName", "timesAssigned" },
+            d.MostAssignedGifts.Select(g => new object[] { g.GiftId, g.GiftName, g.TimesAssigned }));
+
+        using var ms = new MemoryStream();
+        wb.SaveAs(ms);
+        return ms.ToArray();
+    }
+
+    private static void WriteSheet(IXLWorksheet sheet, string[] headers, IEnumerable<object[]> rows)
+    {
+        for (var c = 0; c < headers.Length; c++)
+            sheet.Cell(1, c + 1).Value = headers[c];
+        var r = 2;
+        foreach (var row in rows)
+        {
+            for (var c = 0; c < row.Length; c++)
+            {
+                var cell = sheet.Cell(r, c + 1);
+                switch (row[c])
+                {
+                    case int i:
+                        cell.Value = i;
+                        break;
+                    case decimal m:
+                        cell.Value = m;
+                        break;
+                    case double dbl:
+                        cell.Value = dbl;
+                        break;
+                    case string s:
+                        cell.Value = s;
+                        break;
+                    default:
+                        cell.Value = row[c]?.ToString() ?? string.Empty;
+                        break;
+                }
+            }
+            r++;
+        }
     }
 }

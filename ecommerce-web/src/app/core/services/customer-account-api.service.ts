@@ -15,6 +15,14 @@ export class CustomerAccountApiService {
     return this.http.get<CustomerProfile>(`${this.base}/me`);
   }
 
+  updateProfile(payload: {
+    name: string;
+    phone: string;
+    identityCard: string;
+  }): Observable<CustomerProfile> {
+    return this.http.put<CustomerProfile>(`${this.base}/me`, payload);
+  }
+
   getMyOrders(): Observable<Order[]> {
     return this.http.get<Order[]>(`${this.base}/me/orders`);
   }

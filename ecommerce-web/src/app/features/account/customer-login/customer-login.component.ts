@@ -3,11 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CustomerAuthService } from '../../../core/services/customer-auth.service';
 import { AuthCoordinatorService } from '../../../core/services/auth-coordinator.service';
+import { MaterialModule } from '../../../shared/material.module';
 
 @Component({
   selector: 'app-customer-login',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, MaterialModule],
   templateUrl: './customer-login.component.html',
   styleUrl: './customer-login.component.scss'
 })
@@ -16,7 +17,7 @@ export class CustomerLoginComponent implements OnInit {
   password = '';
   error = '';
   loading = false;
-  returnUrl = '/order';
+  returnUrl = '/products';
 
   private readonly auth = inject(CustomerAuthService);
   private readonly coordinator = inject(AuthCoordinatorService);
@@ -25,7 +26,7 @@ export class CustomerLoginComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.auth.isCustomerSession()) {
-      void this.router.navigateByUrl('/account/orders');
+      void this.router.navigateByUrl('/products');
       return;
     }
     const ret = this.route.snapshot.queryParamMap.get('returnUrl');

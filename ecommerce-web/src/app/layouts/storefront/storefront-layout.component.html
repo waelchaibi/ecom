@@ -1,0 +1,76 @@
+<div class="storefront-shell blue_theme light-theme">
+  <header class="store-topbar">
+    <div class="store-topbar__inner">
+      <a href="/products" class="store-brand" (click)="go($event, '/products')">
+        <span class="store-brand__mark">S</span>
+        <span class="store-brand__text">
+          <strong>Shayma</strong>
+          <small>Curated store</small>
+        </span>
+      </a>
+      <nav class="store-nav">
+        <button type="button" class="nav-link" [class.active]="isActive('/products')" (click)="go($event, '/products')">
+          Shop
+        </button>
+        @if (customerAuth.isLoggedIn()) {
+          <button type="button" class="nav-link" [class.active]="isActive('/cart')" (click)="go($event, '/cart')">
+            Cart
+          </button>
+          <button
+            type="button"
+            class="nav-link"
+            [class.active]="isActive('/account/orders')"
+            (click)="go($event, '/account/orders')"
+          >
+            Orders
+          </button>
+          <button
+            type="button"
+            class="nav-link"
+            [class.active]="isActive('/account/profile')"
+            (click)="go($event, '/account/profile')"
+          >
+            Profile
+          </button>
+          <button mat-flat-button color="primary" type="button" (click)="go($event, '/order')">Checkout</button>
+          <button mat-stroked-button type="button" (click)="customerLogout()">Logout</button>
+        } @else if (adminAuth.isAdminSession()) {
+          <button mat-stroked-button type="button" (click)="go($event, '/admin/dashboard')">Admin</button>
+          <button mat-stroked-button type="button" (click)="adminLogout()">Logout</button>
+        } @else {
+          <button
+            type="button"
+            class="nav-link"
+            [class.active]="isActive('/account/login')"
+            (click)="go($event, '/account/login')"
+          >
+            Sign in
+          </button>
+          <button mat-flat-button color="primary" type="button" (click)="go($event, '/account/register')">
+            Join
+          </button>
+        }
+      </nav>
+    </div>
+  </header>
+
+  <main class="store-main">
+    <router-outlet />
+  </main>
+
+  <ecom-chat-widget />
+
+  <footer class="store-footer">
+    <div class="store-footer__inner">
+      <div>
+        <p class="footer-brand">Shayma</p>
+        <p class="footer-muted">Thoughtfully selected products. Secure checkout.</p>
+      </div>
+      <div>
+        <p><a href="/products" (click)="go($event, '/products')">Shop all</a></p>
+        <p><a href="/account/login" (click)="go($event, '/account/login')">Customer account</a></p>
+        <p><a href="/login" (click)="go($event, '/login')">Admin sign in</a></p>
+      </div>
+    </div>
+  </footer>
+</div>

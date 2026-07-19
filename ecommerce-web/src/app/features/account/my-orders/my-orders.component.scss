@@ -5,8 +5,6 @@
 }
 
 .order-card {
-  padding: 1.25rem 1.35rem;
-
   &__head {
     display: flex;
     justify-content: space-between;
@@ -16,21 +14,11 @@
   }
 
   &__id {
-    display: block;
-    font-weight: 700;
     font-size: 1.05rem;
-  }
-
-  &__date {
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
   }
 
   &__total {
     font-size: 1.35rem;
-    font-weight: 700;
-    margin: 0 0 1rem;
-    font-family: var(--font-display);
   }
 
   &__actions {
@@ -43,15 +31,20 @@
 .orders-footer {
   display: flex;
   gap: 0.75rem;
-  margin-top: 2rem;
   flex-wrap: wrap;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 3rem 2rem;
+.badge-pending {
+  background: #fff8ec !important;
+  color: #ffae1f !important;
+}
 
-  .btn-primary {
-    margin-top: 1rem;
-  }
+.badge-confirmed {
+  background: #e6fffa !important;
+  color: #13deb9 !important;
+}
+
+.badge-cancelled {
+  background: #fdede8 !important;
+  color: #fa896b !important;
 }

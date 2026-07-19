@@ -1,84 +1,97 @@
-<h1>Orders</h1>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 m-b-24">
+  <h4 class="page-title m-b-0">Orders</h4>
+</div>
 
-<form class="filters" (ngSubmit)="applyFilters()">
-  <label>
-    Status
-    <select [(ngModel)]="status" name="status">
-      <option value="">All</option>
-      <option value="Pending">Pending</option>
-      <option value="Confirmed">Confirmed</option>
-      <option value="Shipped">Shipped</option>
-      <option value="Cancelled">Cancelled</option>
-    </select>
-  </label>
-  <label>
-    Customer search
-    <input type="search" [(ngModel)]="customerSearch" name="customerSearch" placeholder="Name or email" />
-  </label>
-  <label>
-    Customer ID
-    <input type="number" min="1" [(ngModel)]="customerId" name="customerId" placeholder="e.g. 1" />
-  </label>
-  <label>
-    From
-    <input type="datetime-local" [(ngModel)]="fromLocal" name="fromLocal" />
-  </label>
-  <label>
-    To
-    <input type="datetime-local" [(ngModel)]="toLocal" name="toLocal" />
-  </label>
-  <div class="filter-actions">
-    <button type="submit">Apply</button>
-    <button type="button" class="ghost" (click)="clearFilters()">Clear</button>
-  </div>
-</form>
+<mat-card class="cardWithShadow m-b-24">
+  <mat-card-content>
+    <form class="d-flex flex-wrap gap-3 align-items-end" (ngSubmit)="applyFilters()">
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select [(ngModel)]="status" name="status">
+          <mat-option value="">All</mat-option>
+          <mat-option value="Pending">Pending</mat-option>
+          <mat-option value="Confirmed">Confirmed</mat-option>
+          <mat-option value="Shipped">Shipped</mat-option>
+          <mat-option value="Cancelled">Cancelled</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label>Customer search</mat-label>
+        <input matInput type="search" [(ngModel)]="customerSearch" name="customerSearch" placeholder="Name or email" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Customer ID</mat-label>
+        <input matInput type="number" min="1" [(ngModel)]="customerId" name="customerId" placeholder="e.g. 1" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>From</mat-label>
+        <input matInput type="datetime-local" [(ngModel)]="fromLocal" name="fromLocal" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>To</mat-label>
+        <input matInput type="datetime-local" [(ngModel)]="toLocal" name="toLocal" />
+      </mat-form-field>
+      <div class="admin-page-actions">
+        <button mat-flat-button color="primary" type="submit">Apply</button>
+        <button mat-stroked-button type="button" (click)="clearFilters()">Clear</button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
 
 @if (err) {
-  <p class="err">{{ err }}</p>
+  <div class="bg-light-error text-error rounded p-12 m-b-24">{{ err }}</div>
 }
 
 @if (data) {
-  <p class="meta">Page {{ data.page }} — {{ data.totalCount }} total</p>
-  <div class="pager">
-    <button type="button" (click)="prev()" [disabled]="page <= 1">Previous</button>
-    <button type="button" (click)="next()" [disabled]="page * pageSize >= data.totalCount">Next</button>
-  </div>
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 m-b-16">
+        <p class="text-muted m-0 f-s-14">Page {{ data.page }} — {{ data.totalCount }} total</p>
+        <div class="admin-page-actions">
+          <button mat-stroked-button type="button" (click)="prev()" [disabled]="page <= 1">Previous</button>
+          <button mat-stroked-button type="button" (click)="next()" [disabled]="page * pageSize >= data.totalCount">Next</button>
+        </div>
+      </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Customer</th>
-        <th>Total</th>
-        <th>Status</th>
-        <th>Lines</th>
-        <th>Created</th>
-        <th>Actions</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (o of data.items; track o.id) {
-        <tr>
-          <td>{{ o.id }}</td>
-          <td>{{ o.customerName }} ({{ o.customerId }})</td>
-          <td>{{ o.totalAmount | number: '1.2-2' }}</td>
-          <td>{{ o.status }}</td>
-          <td>{{ o.lineItemCount }}</td>
-          <td>{{ o.createdAt | date: 'short' }}</td>
-          <td class="acts">
-            @if (o.status === 'Pending') {
-              <button type="button" (click)="confirm(o)" [disabled]="busyId === o.id">Confirm payment</button>
-              <button type="button" class="ghost" (click)="cancel(o)" [disabled]="busyId === o.id">Cancel</button>
+      <div class="table-responsive">
+        <table class="w-100 admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Customer</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Lines</th>
+              <th>Created</th>
+              <th>Actions</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (o of data.items; track o.id) {
+              <tr>
+                <td>{{ o.id }}</td>
+                <td>{{ o.customerName }} ({{ o.customerId }})</td>
+                <td>{{ o.totalAmount | number: '1.2-2' }}</td>
+                <td>{{ o.status }}</td>
+                <td>{{ o.lineItemCount }}</td>
+                <td>{{ o.createdAt | date: 'short' }}</td>
+                <td class="acts">
+                  @if (o.status === 'Pending') {
+                    <button mat-flat-button color="primary" type="button" (click)="confirm(o)" [disabled]="busyId === o.id">Confirm payment</button>
+                    <button mat-stroked-button type="button" (click)="cancel(o)" [disabled]="busyId === o.id">Cancel</button>
+                  }
+                  @if (o.status === 'Confirmed' || o.status === 'Shipped') {
+                    <button mat-stroked-button type="button" (click)="cancel(o)" [disabled]="busyId === o.id">Cancel order</button>
+                  }
+                </td>
+                <td><a mat-button color="primary" [routerLink]="['/admin/orders', o.id]">Details</a></td>
+              </tr>
             }
-            @if (o.status === 'Confirmed' || o.status === 'Shipped') {
-              <button type="button" class="ghost" (click)="cancel(o)" [disabled]="busyId === o.id">Cancel order</button>
-            }
-          </td>
-          <td><a [routerLink]="['/admin/orders', o.id]">Details</a></td>
-        </tr>
-      }
-    </tbody>
-  </table>
+          </tbody>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
 }
-

@@ -1,10 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { Product } from '../../../core/models/product';
 import { AdminApiService } from '../../../core/services/admin-api.service';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
 import { ProductApiService } from '../../../core/services/product-api.service';
+import { resolveMediaUrl } from '../../../core/utils/media-url';
+import { MaterialModule } from '../../../shared/material.module';
 
 interface CategoryOption {
   id: number;
@@ -14,7 +17,7 @@ interface CategoryOption {
 @Component({
   selector: 'app-admin-products',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MaterialModule],
   templateUrl: './admin-products.component.html',
   styleUrl: './admin-products.component.scss'
 })
@@ -36,6 +39,11 @@ export class AdminProductsComponent implements OnInit {
     categoryId: null as number | null,
     imageUrl: ''
   };
+  newImageFile: File | null = null;
+  newImagePreview: string | null = null;
+  editImageFile: File | null = null;
+  editImagePreview: string | null = null;
+  uploading = false;
   msg = '';
   err = '';
 
@@ -47,6 +55,45 @@ export class AdminProductsComponent implements OnInit {
     this.reload();
   }
 
+  mediaSrc(url: string | null | undefined): string | null {
+    return resolveMediaUrl(url);
+  }
+
+  onNewImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    this.newImageFile = file;
+    this.revokePreview(this.newImagePreview);
+    this.newImagePreview = file ? URL.createObjectURL(file) : null;
+    if (!file) {
+      this.newProduct.imageUrl = '';
+    }
+  }
+
+  clearNewImage(input?: HTMLInputElement): void {
+    this.newImageFile = null;
+    this.revokePreview(this.newImagePreview);
+    this.newImagePreview = null;
+    this.newProduct.imageUrl = '';
+    if (input) input.value = '';
+  }
+
+  onEditImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    this.editImageFile = file;
+    this.revokePreview(this.editImagePreview);
+    this.editImagePreview = file ? URL.createObjectURL(file) : null;
+  }
+
+  clearEditImage(input?: HTMLInputElement): void {
+    this.editImageFile = null;
+    this.revokePreview(this.editImagePreview);
+    this.editImagePreview = null;
+    this.draft.imageUrl = '';
+    if (input) input.value = '';
+  }
+
   async createProduct(): Promise<void> {
     if (!this.newProduct.name.trim()) return;
     const confirmed = await this.confirmDialog.open({
@@ -56,30 +103,39 @@ export class AdminProductsComponent implements OnInit {
     });
     if (!confirmed) return;
     this.err = '';
-    this.adminApi
-      .createProduct({
-        name: this.newProduct.name.trim(),
-        description: this.newProduct.description?.trim() ?? '',
-        price: Number(this.newProduct.price),
-        stockQuantity: Number(this.newProduct.stockQuantity),
-        categoryId: this.newProduct.categoryId ?? undefined,
-        imageUrl: this.newProduct.imageUrl.trim() || undefined
-      })
-      .subscribe({
-        next: () => {
-          this.msg = 'Product created.';
-          this.newProduct = {
-            name: '',
-            description: '',
-            price: 0,
-            stockQuantity: 0,
-            categoryId: null,
-            imageUrl: ''
-          };
-          this.reload();
-        },
-        error: () => (this.err = 'Create failed (validation or not authorized).')
-      });
+    this.uploading = true;
+    try {
+      let imageUrl = this.newProduct.imageUrl.trim() || undefined;
+      if (this.newImageFile) {
+        const uploaded = await firstValueFrom(this.adminApi.uploadProductImage(this.newImageFile));
+        imageUrl = uploaded.imageUrl;
+      }
+      await firstValueFrom(
+        this.adminApi.createProduct({
+          name: this.newProduct.name.trim(),
+          description: this.newProduct.description?.trim() ?? '',
+          price: Number(this.newProduct.price),
+          stockQuantity: Number(this.newProduct.stockQuantity),
+          categoryId: this.newProduct.categoryId ?? undefined,
+          imageUrl
+        })
+      );
+      this.msg = 'Product created.';
+      this.newProduct = {
+        name: '',
+        description: '',
+        price: 0,
+        stockQuantity: 0,
+        categoryId: null,
+        imageUrl: ''
+      };
+      this.clearNewImage();
+      this.reload();
+    } catch {
+      this.err = 'Create failed (image upload, validation, or not authorized).';
+    } finally {
+      this.uploading = false;
+    }
   }
 
   reload(): void {
@@ -98,6 +154,9 @@ export class AdminProductsComponent implements OnInit {
   startEdit(p: Product): void {
     this.editId = p.id;
     this.draft = { ...p };
+    this.editImageFile = null;
+    this.revokePreview(this.editImagePreview);
+    this.editImagePreview = null;
     this.msg = '';
     this.err = '';
   }
@@ -105,6 +164,9 @@ export class AdminProductsComponent implements OnInit {
   cancelEdit(): void {
     this.editId = null;
     this.draft = {};
+    this.editImageFile = null;
+    this.revokePreview(this.editImagePreview);
+    this.editImagePreview = null;
   }
 
   async save(): Promise<void> {
@@ -115,23 +177,31 @@ export class AdminProductsComponent implements OnInit {
       confirmLabel: 'Save'
     });
     if (!confirmed) return;
-    this.adminApi
-      .updateProduct(this.editId, {
-        name: this.draft.name!,
-        description: this.draft.description ?? '',
-        price: Number(this.draft.price),
-        stockQuantity: Number(this.draft.stockQuantity),
-        categoryId: this.draft.categoryId ?? undefined,
-        imageUrl: this.draft.imageUrl?.trim() || undefined
-      })
-      .subscribe({
-        next: () => {
-          this.msg = 'Product updated.';
-          this.cancelEdit();
-          this.reload();
-        },
-        error: () => (this.err = 'Update failed (validation or conflict).')
-      });
+    this.uploading = true;
+    try {
+      let imageUrl = this.draft.imageUrl?.trim() || undefined;
+      if (this.editImageFile) {
+        const uploaded = await firstValueFrom(this.adminApi.uploadProductImage(this.editImageFile));
+        imageUrl = uploaded.imageUrl;
+      }
+      await firstValueFrom(
+        this.adminApi.updateProduct(this.editId, {
+          name: this.draft.name!,
+          description: this.draft.description ?? '',
+          price: Number(this.draft.price),
+          stockQuantity: Number(this.draft.stockQuantity),
+          categoryId: this.draft.categoryId ?? undefined,
+          imageUrl
+        })
+      );
+      this.msg = 'Product updated.';
+      this.cancelEdit();
+      this.reload();
+    } catch {
+      this.err = 'Update failed (image upload, validation, or conflict).';
+    } finally {
+      this.uploading = false;
+    }
   }
 
   async delete(p: Product): Promise<void> {
@@ -172,5 +242,11 @@ export class AdminProductsComponent implements OnInit {
 
   categoryLabel(p: Product): string {
     return p.categoryName ?? (p.categoryId ? `#${p.categoryId}` : '—');
+  }
+
+  private revokePreview(url: string | null): void {
+    if (url?.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
+    }
   }
 }

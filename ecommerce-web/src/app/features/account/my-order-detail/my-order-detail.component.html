@@ -1,17 +1,19 @@
-<p class="back-link"><a routerLink="/account/orders">← My orders</a></p>
+<p class="m-b-16">
+  <a routerLink="/account/orders" class="text-primary f-w-500 f-s-14 text-decoration-none">← My orders</a>
+</p>
 
 @if (err) {
-  <div class="alert alert-error">{{ err }}</div>
+  <div class="bg-light-error text-error rounded p-12 m-b-16">{{ err }}</div>
 }
 @if (msg) {
-  <div class="alert alert-success">{{ msg }}</div>
+  <div class="bg-light-success text-success rounded p-12 m-b-16">{{ msg }}</div>
 }
 
 @if (order) {
-  <div class="page-header">
-    <h1>Order #{{ order.id }}</h1>
-    <p class="lead">
-      <span [class]="statusClass(order.status)">{{ order.status }}</span>
+  <div class="page-header m-b-24">
+    <h4 class="f-w-600 m-b-4">Order #{{ order.id }}</h4>
+    <p class="f-s-14 text-muted m-b-0">
+      <mat-chip [class]="statusClass(order.status)">{{ order.status }}</mat-chip>
       · {{ order.createdAt | date: 'medium' }}
       · Total <strong>{{ order.totalAmount | number: '1.2-2' }}</strong>
       @if (order.promotionCode) {
@@ -21,53 +23,61 @@
   </div>
 
   @if (order.status === 'Pending') {
-    <div class="pay-box">
-      <p class="muted">Awaiting payment. Complete the form below (demo — no real charge).</p>
-      <ecom-payment-gateway
-        [amount]="order.totalAmount"
-        [busy]="busy"
-        (pay)="pay($event)"
-      />
-      <button type="button" class="btn-ghost" (click)="cancel()" [disabled]="busy">Cancel order</button>
-    </div>
+    <mat-card class="cardWithShadow pay-box m-b-24">
+      <mat-card-content>
+        <p class="text-muted m-b-16">Awaiting payment. Complete the form below (demo — no real charge).</p>
+        <ecom-payment-gateway
+          [amount]="order.totalAmount"
+          [busy]="busy"
+          (pay)="pay($event)"
+        />
+        <button type="button" mat-stroked-button class="m-t-16" (click)="cancel()" [disabled]="busy">
+          Cancel order
+        </button>
+      </mat-card-content>
+    </mat-card>
   }
 
-  <section class="detail-section surface-card">
-    <h2>Items</h2>
-    <div class="data-table-wrap">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Qty</th>
-            <th>Price</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (li of order.orderItems; track li.id) {
+  <mat-card class="cardWithShadow detail-section m-b-16">
+    <mat-card-content>
+      <h5 class="f-w-600 m-b-16">Items</h5>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead>
             <tr>
-              <td>{{ li.productName || ('#' + li.productId) }}</td>
-              <td>{{ li.quantity }}</td>
-              <td>{{ li.price | number: '1.2-2' }}</td>
+              <th>Product</th>
+              <th>Qty</th>
+              <th>Price</th>
             </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  </section>
+          </thead>
+          <tbody>
+            @for (li of order.orderItems; track li.id) {
+              <tr>
+                <td>{{ li.productName || ('#' + li.productId) }}</td>
+                <td>{{ li.quantity }}</td>
+                <td>{{ li.price | number: '1.2-2' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
-  <section class="detail-section surface-card">
-    <h2>Gifts</h2>
-    @if (order.assignedGifts?.length) {
-      <ul class="gift-list">
-        @for (g of order.assignedGifts!; track g.giftId) {
-          <li>{{ g.giftName }} × {{ g.quantity }}</li>
-        }
-      </ul>
-    } @else if (order.status === 'Pending') {
-      <p class="muted">Gifts are applied when payment is confirmed.</p>
-    } @else {
-      <p class="muted">None on this order.</p>
-    }
-  </section>
+  <mat-card class="cardWithShadow detail-section">
+    <mat-card-content>
+      <h5 class="f-w-600 m-b-16">Gifts</h5>
+      @if (order.assignedGifts?.length) {
+        <ul class="gift-list m-b-0">
+          @for (g of order.assignedGifts!; track g.giftId) {
+            <li>{{ g.giftName }} × {{ g.quantity }}</li>
+          }
+        </ul>
+      } @else if (order.status === 'Pending') {
+        <p class="text-muted m-b-0">Gifts are applied when payment is confirmed.</p>
+      } @else {
+        <p class="text-muted m-b-0">None on this order.</p>
+      }
+    </mat-card-content>
+  </mat-card>
 }

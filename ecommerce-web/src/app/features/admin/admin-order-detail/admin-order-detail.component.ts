@@ -4,11 +4,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Order } from '../../../core/models/order';
 import { AdminApiService } from '../../../core/services/admin-api.service';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
+import { MaterialModule } from '../../../shared/material.module';
 
 @Component({
   selector: 'app-admin-order-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, MaterialModule],
   templateUrl: './admin-order-detail.component.html',
   styleUrl: './admin-order-detail.component.scss'
 })

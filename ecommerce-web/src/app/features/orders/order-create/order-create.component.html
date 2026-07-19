@@ -1,118 +1,130 @@
-<div class="page-header">
-  <h1>Checkout</h1>
+<div class="page-header m-b-24">
+  <h4 class="f-w-600 m-b-4">Checkout</h4>
   @if (auth.profile(); as p) {
-    <p class="lead">Ordering as <strong>{{ p.name }}</strong> · {{ p.email }}</p>
+    <p class="f-s-14 text-muted m-b-0">Ordering as <strong>{{ p.name }}</strong> · {{ p.email }}</p>
   }
 </div>
 
 @if (error && !products.length) {
-  <div class="alert alert-error">{{ error }}</div>
+  <div class="bg-light-error text-error rounded p-12 m-b-16">{{ error }}</div>
 }
 
 @if (products.length) {
   <div class="page-split checkout-layout">
-    <form (ngSubmit)="submit()" class="checkout-form surface-card">
-      <h2>Order details</h2>
+    <mat-card class="cardWithShadow checkout-form">
+      <mat-card-content>
+        <h5 class="f-w-600 m-b-16">Order details</h5>
 
-      <label class="form-field">
-        <span>Promotion code (optional)</span>
-        <input
-          type="text"
-          name="promotionCode"
-          [(ngModel)]="promotionCode"
-          placeholder="e.g. SPRINT2"
-          autocomplete="off"
-        />
-      </label>
+        <form (ngSubmit)="submit()">
+          <mat-form-field appearance="outline" class="w-100 m-b-8" color="primary">
+            <mat-label>Promotion code (optional)</mat-label>
+            <input
+              matInput
+              type="text"
+              name="promotionCode"
+              [(ngModel)]="promotionCode"
+              placeholder="e.g. SPRINT2"
+              autocomplete="off"
+            />
+          </mat-form-field>
 
-      <fieldset class="line-items">
-        <legend>Items</legend>
-        @for (line of lines; track $index; let i = $index) {
-          <div class="line-row">
-            <label class="form-field line-grow">
-              <span>Product</span>
-              <select name="product-{{ i }}" [(ngModel)]="line.productId" (ngModelChange)="onLineChange()">
-                <option [ngValue]="null">Select…</option>
-                @for (p of products; track p.id) {
-                  <option [ngValue]="p.id">{{ p.name }} ({{ p.stockQuantity }} in stock)</option>
+          <fieldset class="line-items">
+            <legend class="f-s-12 f-w-600 text-muted m-b-12">Items</legend>
+            @for (line of lines; track $index; let i = $index) {
+              <div class="line-row">
+                <mat-form-field appearance="outline" class="line-grow" color="primary">
+                  <mat-label>Product</mat-label>
+                  <mat-select name="product-{{ i }}" [(ngModel)]="line.productId" (ngModelChange)="onLineChange()">
+                    <mat-option [value]="null">Select…</mat-option>
+                    @for (p of products; track p.id) {
+                      <mat-option [value]="p.id">{{ p.name }} ({{ p.stockQuantity }} in stock)</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="line-qty" color="primary">
+                  <mat-label>Qty</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    name="qty-{{ i }}"
+                    min="1"
+                    [(ngModel)]="line.quantity"
+                    (ngModelChange)="onLineChange()"
+                  />
+                </mat-form-field>
+                @if (lines.length > 1) {
+                  <button type="button" mat-stroked-button class="line-remove" (click)="removeLine(i)">Remove</button>
                 }
-              </select>
-            </label>
-            <label class="form-field line-qty">
-              <span>Qty</span>
-              <input
-                type="number"
-                name="qty-{{ i }}"
-                min="1"
-                [(ngModel)]="line.quantity"
-                (ngModelChange)="onLineChange()"
-              />
-            </label>
-            @if (lines.length > 1) {
-              <button type="button" class="btn-ghost btn-sm line-remove" (click)="removeLine(i)">Remove</button>
+              </div>
             }
-          </div>
+            <button type="button" mat-stroked-button class="m-b-16" (click)="addLine()">+ Add item</button>
+          </fieldset>
+
+          <button mat-flat-button color="primary" class="w-100" type="submit" [disabled]="submitting">
+            {{ submitting ? 'Placing order…' : 'Place order' }}
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="cardWithShadow checkout-aside">
+      <mat-card-content>
+        <h5 class="f-w-600 m-b-16">Order summary</h5>
+        @if (pricing) {
+          <dl class="summary-rows">
+            <dt>Subtotal</dt>
+            <dd>{{ pricing.subtotal | number: '1.2-2' }}</dd>
+            <dt>Tax</dt>
+            <dd>{{ pricing.taxAmount | number: '1.2-2' }}</dd>
+            <dt>Shipping</dt>
+            <dd>{{ pricing.shippingAmount | number: '1.2-2' }}</dd>
+            <dt class="summary-total">Total</dt>
+            <dd class="summary-total">{{ pricing.totalAmount | number: '1.2-2' }}</dd>
+          </dl>
+        } @else {
+          <p class="text-muted m-b-16">Select products to see server-calculated totals.</p>
         }
-        <button type="button" class="btn-secondary btn-sm" (click)="addLine()">+ Add item</button>
-      </fieldset>
-
-      <button type="submit" class="btn-primary btn-block" [disabled]="submitting">
-        {{ submitting ? 'Placing order…' : 'Place order' }}
-      </button>
-    </form>
-
-    <aside class="checkout-aside surface-card">
-      <h2>Order summary</h2>
-      @if (pricing) {
-        <dl class="summary-rows">
-          <dt>Subtotal</dt>
-          <dd>{{ pricing.subtotal | number: '1.2-2' }}</dd>
-          <dt>Tax</dt>
-          <dd>{{ pricing.taxAmount | number: '1.2-2' }}</dd>
-          <dt>Shipping</dt>
-          <dd>{{ pricing.shippingAmount | number: '1.2-2' }}</dd>
-          <dt class="summary-total">Total</dt>
-          <dd class="summary-total">{{ pricing.totalAmount | number: '1.2-2' }}</dd>
-        </dl>
-      } @else {
-        <p class="muted">Select products to see server-calculated totals.</p>
-      }
-      <a routerLink="/cart" class="btn-secondary btn-block">View cart</a>
-      <a routerLink="/products" class="btn-ghost btn-block">Continue shopping</a>
-    </aside>
+        <a mat-stroked-button class="w-100 m-b-8" routerLink="/cart">View cart</a>
+        <a mat-stroked-button class="w-100" routerLink="/products">Continue shopping</a>
+      </mat-card-content>
+    </mat-card>
   </div>
 }
 
 @if (message) {
-  <div class="checkout-result surface-card">
-    <div class="alert alert-success">{{ message }}</div>
-    @if (lastOrder?.status === 'Pending') {
-      <ecom-payment-gateway
-        [amount]="lastOrder!.totalAmount"
-        [busy]="paying"
-        (pay)="payLastOrder($event)"
-      />
-    }
-    <p><a routerLink="/account/orders">View my orders →</a></p>
-  </div>
+  <mat-card class="cardWithShadow checkout-result m-t-24">
+    <mat-card-content>
+      <div class="bg-light-success text-success rounded p-12 m-b-16">{{ message }}</div>
+      @if (lastOrder?.status === 'Pending') {
+        <ecom-payment-gateway
+          [amount]="lastOrder!.totalAmount"
+          [busy]="paying"
+          (pay)="payLastOrder($event)"
+        />
+      }
+      <p class="m-b-0 m-t-16"><a routerLink="/account/orders" class="text-primary f-w-500">View my orders →</a></p>
+    </mat-card-content>
+  </mat-card>
 }
 
 @if (lastOrder?.assignedGifts?.length) {
-  <div class="gift-panel surface-card">
-    <h2>Promotional gifts</h2>
-    <ul class="gift-list">
-      @for (g of lastOrder!.assignedGifts!; track g.giftId + '-' + g.giftRuleId) {
-        <li>
-          <strong>{{ g.giftName }}</strong>
-          @if (g.quantity > 1) {
-            <span> × {{ g.quantity }}</span>
-          }
-        </li>
-      }
-    </ul>
-  </div>
+  <mat-card class="cardWithShadow gift-panel m-t-24">
+    <mat-card-content>
+      <h5 class="f-w-600 m-b-16">Promotional gifts</h5>
+      <ul class="gift-list m-b-0">
+        @for (g of lastOrder!.assignedGifts!; track g.giftId + '-' + g.giftRuleId) {
+          <li>
+            <strong>{{ g.giftName }}</strong>
+            @if (g.quantity > 1) {
+              <span> × {{ g.quantity }}</span>
+            }
+          </li>
+        }
+      </ul>
+    </mat-card-content>
+  </mat-card>
 }
 
 @if (error && products.length) {
-  <div class="alert alert-error">{{ error }}</div>
+  <div class="bg-light-error text-error rounded p-12 m-t-16">{{ error }}</div>
 }

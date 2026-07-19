@@ -33,6 +33,17 @@ public class MeController : ControllerBase
         return Ok(profile);
     }
 
+    [HttpPut]
+    [ProducesResponseType(typeof(CustomerProfileDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CustomerProfileDTO>> UpdateProfile(
+        [FromBody] UpdateCustomerProfileDTO dto,
+        CancellationToken cancellationToken)
+    {
+        var customerId = User.GetCustomerId();
+        return Ok(await _customerAuth.UpdateProfileAsync(customerId, dto, cancellationToken));
+    }
+
     [HttpGet("orders")]
     [ProducesResponseType(typeof(IReadOnlyList<OrderDTO>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<OrderDTO>>> GetMyOrders()

@@ -1,33 +1,46 @@
-<div class="auth-page">
-  <div class="auth-card">
-    <h1>Welcome back</h1>
-    <p class="hint">Sign in with your <strong>customer email</strong> to place orders and track purchases.</p>
-    <p class="hint small">
-      Admin console? Use <a routerLink="/login">admin sign in</a> (username <code>admin</code>, not email).
-    </p>
+<div class="blank-layout-container justify-content-center align-items-center bg-light">
+  <div class="position-relative row w-100 h-100 bg-gredient justify-content-center">
+    <div class="col-lg-4 d-flex align-items-center">
+      <mat-card class="cardWithShadow boxed-auth">
+        <mat-card-content class="p-32">
+          <div class="text-center">
+            <div class="d-inline-flex align-items-center justify-content-center rounded bg-primary text-white f-w-700 m-b-8" style="width: 48px; height: 48px">
+              S
+            </div>
+            <h4 class="f-w-600 m-b-4">Welcome back</h4>
+            <p class="f-s-14 text-muted m-b-0">Sign in with your customer email</p>
+          </div>
 
-    @if (error) {
-      <div class="alert alert-error">{{ error }}</div>
-    }
+          @if (error) {
+            <div class="bg-light-error text-error rounded p-12 m-t-24">{{ error }}</div>
+          }
 
-    <form (ngSubmit)="submit()">
-      <label class="form-field">
-        <span>Email</span>
-        <input type="email" name="email" [(ngModel)]="email" autocomplete="email" required />
-      </label>
-      <label class="form-field">
-        <span>Password</span>
-        <input type="password" name="password" [(ngModel)]="password" autocomplete="current-password" required />
-      </label>
-      <button type="submit" class="btn-primary btn-block" [disabled]="loading">
-        {{ loading ? 'Signing in…' : 'Sign in' }}
-      </button>
-    </form>
+          <form class="m-t-24" (ngSubmit)="submit()">
+            <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">Email</mat-label>
+            <mat-form-field appearance="outline" class="w-100" color="primary">
+              <input matInput type="email" name="email" [(ngModel)]="email" autocomplete="email" required />
+            </mat-form-field>
 
-    <p class="auth-links">
-      <a routerLink="/account/register">Create an account</a>
-      ·
-      <a routerLink="/products">Browse products</a>
-    </p>
+            <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">Password</mat-label>
+            <mat-form-field appearance="outline" class="w-100" color="primary">
+              <input matInput type="password" name="password" [(ngModel)]="password" autocomplete="current-password" required />
+            </mat-form-field>
+
+            <button mat-flat-button color="primary" class="w-100" type="submit" [disabled]="loading">
+              {{ loading ? 'Signing in…' : 'Sign in' }}
+            </button>
+          </form>
+
+          <span class="d-block f-w-500 text-center m-t-24">
+            New to Shayma?
+            <a routerLink="/account/register" class="text-decoration-none text-primary f-w-500 f-s-14">Create an account</a>
+          </span>
+          <span class="d-block f-w-500 text-center m-t-8">
+            Admin?
+            <a routerLink="/login" class="text-decoration-none text-primary f-w-500 f-s-14">Admin sign in</a>
+          </span>
+        </mat-card-content>
+      </mat-card>
+    </div>
   </div>
 </div>

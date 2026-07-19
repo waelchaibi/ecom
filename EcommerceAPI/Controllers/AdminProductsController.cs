@@ -12,11 +12,16 @@ public class AdminProductsController : ControllerBase
 {
     private readonly IProductService _productService;
     private readonly IAuditService _audit;
+    private readonly IProductImageStorage _images;
 
-    public AdminProductsController(IProductService productService, IAuditService audit)
+    public AdminProductsController(
+        IProductService productService,
+        IAuditService audit,
+        IProductImageStorage images)
     {
         _productService = productService;
         _audit = audit;
+        _images = images;
     }
 
     [HttpPost]
@@ -27,6 +32,16 @@ public class AdminProductsController : ControllerBase
         var created = await _productService.CreateProductAsync(dto);
         await _audit.LogAsync(User.Identity?.Name ?? "admin", "Create", "Product", created.Id, created.Name);
         return Created($"/api/products/{created.Id}", created);
+    }
+
+    [HttpPost("image")]
+    [RequestSizeLimit(6 * 1024 * 1024)]
+    [ProducesResponseType(typeof(ProductImageUploadResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ProductImageUploadResponse>> UploadImage(IFormFile file, CancellationToken cancellationToken)
+    {
+        var path = await _images.SaveAsync(file, cancellationToken);
+        return Ok(new ProductImageUploadResponse { ImageUrl = path });
     }
 
     [HttpPut("{id:int}")]
@@ -54,4 +69,9 @@ public class AdminProductsController : ControllerBase
         var updated = await _productService.UpdateStockAsync(id, dto.StockQuantity);
         return Ok(updated);
     }
+}
+
+public sealed class ProductImageUploadResponse
+{
+    public string ImageUrl { get; set; } = string.Empty;
 }

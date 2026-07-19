@@ -31,4 +31,15 @@ public class AnalyticsController : ControllerBase
         var bytes = await _analytics.ExportDashboardCsvAsync(lowStockThreshold, HttpContext.RequestAborted);
         return File(bytes, "text/csv; charset=utf-8", "analytics-dashboard.csv");
     }
+
+    [HttpGet("export/xlsx")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ExportExcel([FromQuery] int lowStockThreshold = 10)
+    {
+        var bytes = await _analytics.ExportDashboardExcelAsync(lowStockThreshold, HttpContext.RequestAborted);
+        return File(
+            bytes,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "analytics-dashboard.xlsx");
+    }
 }

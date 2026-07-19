@@ -1,27 +1,38 @@
-<h1>Customers</h1>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 m-b-24">
+  <h4 class="page-title m-b-0">Customers</h4>
+</div>
+
 @if (err) {
-  <p class="err">{{ err }}</p>
+  <div class="bg-light-error text-error rounded p-12 m-b-24">{{ err }}</div>
 }
 
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>Email</th>
-      <th>Phone</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    @for (c of customers; track c.id) {
-      <tr>
-        <td>{{ c.id }}</td>
-        <td>{{ c.name }}</td>
-        <td>{{ c.email }}</td>
-        <td>{{ c.phone }}</td>
-        <td><a [routerLink]="['/admin/customers', c.id]">Order history</a></td>
-      </tr>
-    }
-  </tbody>
-</table>
+<mat-card class="cardWithShadow">
+  <mat-card-content>
+    <div class="table-responsive">
+      <table class="w-100 admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>CIN</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of customers; track c.id) {
+            <tr>
+              <td>{{ c.id }}</td>
+              <td>{{ c.name }}</td>
+              <td>{{ c.email }}</td>
+              <td>{{ c.phone }}</td>
+              <td>{{ c.identityCard }}</td>
+              <td><a mat-button color="primary" [routerLink]="['/admin/customers', c.id]">Order history</a></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </mat-card-content>
+</mat-card>

@@ -110,6 +110,11 @@ export class AdminApiService {
     return this.http.get(`${this.base}/analytics/export/csv`, { params, responseType: 'blob' });
   }
 
+  downloadAnalyticsExcel(lowStockThreshold = 10): Observable<Blob> {
+    const params = new HttpParams().set('lowStockThreshold', String(lowStockThreshold));
+    return this.http.get(`${this.base}/analytics/export/xlsx`, { params, responseType: 'blob' });
+  }
+
   getOrders(
     page = 1,
     pageSize = 20,
@@ -159,6 +164,10 @@ export class AdminApiService {
     return this.http.get<Customer[]>(`${this.base}/admin/customers`);
   }
 
+  getCustomer(customerId: number): Observable<Customer> {
+    return this.http.get<Customer>(`${this.base}/admin/customers/${customerId}`);
+  }
+
   getCustomerOrders(customerId: number): Observable<Order[]> {
     return this.http.get<Order[]>(`${this.base}/admin/customers/${customerId}/orders`);
   }
@@ -195,6 +204,12 @@ export class AdminApiService {
 
   createProduct(body: CreateProductPayload): Observable<Product> {
     return this.http.post<Product>(`${this.base}/admin/products`, body);
+  }
+
+  uploadProductImage(file: File): Observable<{ imageUrl: string }> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    return this.http.post<{ imageUrl: string }>(`${this.base}/admin/products/image`, form);
   }
 
   getGiftRules(): Observable<GiftRuleRow[]> {

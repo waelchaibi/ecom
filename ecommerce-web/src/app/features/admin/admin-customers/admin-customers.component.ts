@@ -3,11 +3,12 @@ import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Customer } from '../../../core/models/customer';
 import { AdminApiService } from '../../../core/services/admin-api.service';
+import { MaterialModule } from '../../../shared/material.module';
 
 @Component({
   selector: 'app-admin-customers',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, MaterialModule],
   templateUrl: './admin-customers.component.html',
   styleUrl: './admin-customers.component.scss'
 })

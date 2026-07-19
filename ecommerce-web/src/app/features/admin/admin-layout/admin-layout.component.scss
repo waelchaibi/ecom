@@ -1,80 +1,12 @@
-:host {
-  display: block;
-  margin: -2rem -1.25rem -3rem;
-  min-height: calc(100vh - var(--header-h));
-}
+/* Layout styles come from Modernize global SCSS */
 
-.admin-shell {
-  display: flex;
-  min-height: calc(100vh - var(--header-h));
-}
-
-.side {
-  width: 240px;
-  flex-shrink: 0;
-  background: var(--color-surface-dark);
-  color: var(--color-text-inverse);
-  padding: 1.5rem 1rem;
-}
-
-.side-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-
-  strong {
-    font-family: var(--font-display);
-    font-size: 1.1rem;
-  }
-}
-
-.logout {
-  font-size: 0.75rem;
-  padding: 0.35rem 0.65rem;
-  cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: var(--radius-full);
-  background: transparent;
-  color: rgba(255, 255, 255, 0.85);
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.08);
-  }
-}
-
-.side nav {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-
-  a {
-    color: rgba(255, 255, 255, 0.7);
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    padding: 0.55rem 0.75rem;
-    border-radius: var(--radius-sm);
-    transition: all var(--transition);
-
-    &:hover {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    &.active {
-      color: #fff;
-      background: var(--color-primary);
-      font-weight: 600;
-    }
-  }
-}
-
-.main {
+.sidebar-scroll {
   flex: 1;
-  padding: 2rem 1.75rem;
-  max-width: 1200px;
-  background: var(--color-bg);
+  overflow-y: auto;
+  height: 100%;
+  padding-bottom: 24px;
+}
+
+.sidebar-list {
+  padding: 0 24px;
 }

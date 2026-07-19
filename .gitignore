@@ -23,4 +23,10 @@ Thumbs.db
 # Scratch / local notes
 setup_models.txt
 
+# Uploaded product images (keep folder, ignore files)
+EcommerceAPI/wwwroot/uploads/products/*
+!EcommerceAPI/wwwroot/uploads/products/.gitkeep
+
 diagrams/
+
+modernize-angular-free-main/

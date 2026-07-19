@@ -24,6 +24,10 @@ public class CustomerRepository : ICustomerRepository
         await _context.Customers
             .FirstOrDefaultAsync(c => c.Email == email, cancellationToken);
 
+    public async Task<Customer?> GetByIdentityCardAsync(string identityCard, CancellationToken cancellationToken = default) =>
+        await _context.Customers
+            .FirstOrDefaultAsync(c => c.IdentityCard == identityCard, cancellationToken);
+
     public async Task<Customer> AddAsync(Customer customer, CancellationToken cancellationToken = default)
     {
         _context.Customers.Add(customer);

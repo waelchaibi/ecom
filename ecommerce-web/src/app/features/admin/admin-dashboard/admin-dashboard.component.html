@@ -1,130 +1,226 @@
-<div class="head">
-  <h1>Analytics dashboard</h1>
-  <div class="actions">
-    <button type="button" (click)="load()">Refresh</button>
-    <button type="button" (click)="exportCsv()" [disabled]="csvBusy">{{ csvBusy ? 'Exporting…' : 'Export CSV' }}</button>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 m-b-24">
+  <div>
+    <h4 class="page-title m-b-0">Analytics dashboard</h4>
+    <span class="f-s-14 text-muted">Sales, inventory, and customer insights</span>
+  </div>
+  <div class="admin-page-actions">
+    <button mat-stroked-button type="button" (click)="load()">
+      <i-tabler name="refresh" class="icon-18 m-r-4"></i-tabler>
+      Refresh
+    </button>
+    <button mat-stroked-button type="button" (click)="exportCsv()" [disabled]="csvBusy">
+      {{ csvBusy ? 'Exporting…' : 'Export CSV' }}
+    </button>
+    <button mat-flat-button color="primary" type="button" (click)="exportExcel()" [disabled]="xlsxBusy">
+      {{ xlsxBusy ? 'Exporting…' : 'Export Excel' }}
+    </button>
   </div>
 </div>
 
 @if (err) {
-  <p class="err">{{ err }}</p>
+  <mat-card class="cardWithShadow m-b-24">
+    <mat-card-content>
+      <p class="text-error m-0">{{ err }}</p>
+    </mat-card-content>
+  </mat-card>
 }
 
 @if (data) {
-  <section class="kpis">
-    <div class="kpi">
-      <span class="label">Total revenue</span>
-      <span class="val">{{ data.sales.totalRevenue | number: '1.2-2' }}</span>
+  <div class="row">
+    <div class="col-lg-4">
+      <mat-card class="cardWithShadow">
+        <mat-card-content>
+          <div class="d-flex align-items-center">
+            <div class="round-40 rounded bg-light-primary text-primary d-flex align-items-center justify-content-center">
+              <i-tabler name="currency-dollar" class="icon-20"></i-tabler>
+            </div>
+            <div class="m-l-16">
+              <h5 class="mat-subtitle-1 f-s-14 f-w-600 m-b-4">Total revenue</h5>
+              <h4 class="m-0 f-w-600">{{ data.sales.totalRevenue | number: '1.2-2' }}</h4>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
-    <div class="kpi">
-      <span class="label">Orders</span>
-      <span class="val">{{ data.sales.orderCount }}</span>
+    <div class="col-lg-4">
+      <mat-card class="cardWithShadow">
+        <mat-card-content>
+          <div class="d-flex align-items-center">
+            <div class="round-40 rounded bg-light-secondary text-secondary d-flex align-items-center justify-content-center">
+              <i-tabler name="shopping-cart" class="icon-20"></i-tabler>
+            </div>
+            <div class="m-l-16">
+              <h5 class="mat-subtitle-1 f-s-14 f-w-600 m-b-4">Orders</h5>
+              <h4 class="m-0 f-w-600">{{ data.sales.orderCount }}</h4>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
-    <div class="kpi">
-      <span class="label">Average order value</span>
-      <span class="val">{{ data.sales.averageOrderValue | number: '1.2-2' }}</span>
+    <div class="col-lg-4">
+      <mat-card class="cardWithShadow">
+        <mat-card-content>
+          <div class="d-flex align-items-center">
+            <div class="round-40 rounded bg-light-success text-success d-flex align-items-center justify-content-center">
+              <i-tabler name="chart-bar" class="icon-20"></i-tabler>
+            </div>
+            <div class="m-l-16">
+              <h5 class="mat-subtitle-1 f-s-14 f-w-600 m-b-4">Average order value</h5>
+              <h4 class="m-0 f-w-600">{{ data.sales.averageOrderValue | number: '1.2-2' }}</h4>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
-  </section>
+  </div>
 
-  <div class="grid">
-    <section>
-      <h2>Best-selling products</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Qty sold</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (p of data.bestSellingProducts; track p.productId) {
-            <tr>
-              <td>{{ p.productName }}</td>
-              <td>{{ p.quantitySold }}</td>
-            </tr>
+  <div class="row">
+    <div class="col-lg-8">
+      <mat-card class="cardWithShadow">
+        <mat-card-content>
+          <h5 class="f-w-600 m-b-16">Best-selling products</h5>
+          @if (bestSellingChartOptions) {
+            <apx-chart
+              [series]="bestSellingChartOptions.series"
+              [chart]="bestSellingChartOptions.chart"
+              [dataLabels]="bestSellingChartOptions.dataLabels"
+              [plotOptions]="bestSellingChartOptions.plotOptions"
+              [yaxis]="bestSellingChartOptions.yaxis"
+              [xaxis]="bestSellingChartOptions.xaxis"
+              [fill]="bestSellingChartOptions.fill"
+              [tooltip]="bestSellingChartOptions.tooltip"
+              [stroke]="bestSellingChartOptions.stroke"
+              [legend]="bestSellingChartOptions.legend"
+              [grid]="bestSellingChartOptions.grid"
+            ></apx-chart>
           }
-        </tbody>
-      </table>
-    </section>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-lg-4">
+      <mat-card class="cardWithShadow">
+        <mat-card-content>
+          <h5 class="f-w-600 m-b-16">Gift assignments</h5>
+          @if (giftsChartOptions && data.mostAssignedGifts.length > 0) {
+            <apx-chart
+              [series]="giftsChartOptions.series"
+              [chart]="giftsChartOptions.chart"
+              [labels]="giftsChartOptions.labels"
+              [colors]="giftsChartOptions.colors"
+              [legend]="giftsChartOptions.legend"
+              [dataLabels]="giftsChartOptions.dataLabels"
+              [plotOptions]="giftsChartOptions.plotOptions"
+              [stroke]="giftsChartOptions.stroke"
+              [tooltip]="giftsChartOptions.tooltip"
+              [responsive]="giftsChartOptions.responsive"
+            ></apx-chart>
+          } @else {
+            <p class="text-muted m-0">No gift assignments yet.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
 
-    <section>
-      <h2>Low stock (≤ threshold)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Stock</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (p of data.lowStockProducts; track p.productId) {
-            <tr>
-              <td>{{ p.productName }}</td>
-              <td>{{ p.stockQuantity }}</td>
-            </tr>
+  <div class="row">
+    <div class="col-lg-6">
+      <mat-card class="cardWithShadow">
+        <mat-card-content>
+          <h5 class="f-w-600 m-b-16">Top customers by revenue</h5>
+          @if (customersChartOptions) {
+            <apx-chart
+              [series]="customersChartOptions.series"
+              [chart]="customersChartOptions.chart"
+              [dataLabels]="customersChartOptions.dataLabels"
+              [plotOptions]="customersChartOptions.plotOptions"
+              [yaxis]="customersChartOptions.yaxis"
+              [xaxis]="customersChartOptions.xaxis"
+              [fill]="customersChartOptions.fill"
+              [tooltip]="customersChartOptions.tooltip"
+              [stroke]="customersChartOptions.stroke"
+              [legend]="customersChartOptions.legend"
+              [grid]="customersChartOptions.grid"
+            ></apx-chart>
           }
-        </tbody>
-      </table>
-    </section>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-lg-6">
+      <mat-card class="cardWithShadow">
+        <mat-card-content>
+          <h5 class="f-w-600 m-b-16">Low stock</h5>
+          <div class="table-responsive">
+            <table mat-table [dataSource]="data.lowStockProducts" class="w-100">
+              <ng-container matColumnDef="product">
+                <th mat-header-cell *matHeaderCellDef>Product</th>
+                <td mat-cell *matCellDef="let p">{{ p.productName }}</td>
+              </ng-container>
+              <ng-container matColumnDef="stock">
+                <th mat-header-cell *matHeaderCellDef>Stock</th>
+                <td mat-cell *matCellDef="let p">{{ p.stockQuantity }}</td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="['product', 'stock']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['product', 'stock']"></tr>
+            </table>
+          </div>
+          @if (!data.lowStockProducts.length) {
+            <p class="text-muted m-t-16 m-b-0">No low-stock products.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
 
-    <section>
-      <h2>Loyal customers (by orders)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Customer</th>
-            <th>Orders</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (c of data.topCustomersByOrders; track c.customerId) {
-            <tr>
-              <td>{{ c.customerName }}</td>
-              <td>{{ c.orderCount }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </section>
-
-    <section>
-      <h2>Top customers (by revenue)</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Customer</th>
-            <th>Total spent</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (c of data.topCustomersByRevenue; track c.customerId) {
-            <tr>
-              <td>{{ c.customerName }}</td>
-              <td>{{ c.totalPurchaseValue | number: '1.2-2' }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </section>
-
-    <section class="wide">
-      <h2>Gift performance</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Gift</th>
-            <th>Times assigned</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (g of data.mostAssignedGifts; track g.giftId) {
-            <tr>
-              <td>{{ g.giftName }}</td>
-              <td>{{ g.timesAssigned }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </section>
+  <div class="row">
+    <div class="col-lg-6">
+      <mat-card class="cardWithShadow">
+        <mat-card-content>
+          <h5 class="f-w-600 m-b-16">Loyal customers (by orders)</h5>
+          <div class="table-responsive">
+            <table class="w-100">
+              <thead>
+                <tr>
+                  <th class="text-left p-8">Customer</th>
+                  <th class="text-right p-8">Orders</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (c of data.topCustomersByOrders; track c.customerId) {
+                  <tr>
+                    <td class="p-8">{{ c.customerName }}</td>
+                    <td class="p-8 text-right">{{ c.orderCount }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-lg-6">
+      <mat-card class="cardWithShadow">
+        <mat-card-content>
+          <h5 class="f-w-600 m-b-16">Best sellers (table)</h5>
+          <div class="table-responsive">
+            <table class="w-100">
+              <thead>
+                <tr>
+                  <th class="text-left p-8">Product</th>
+                  <th class="text-right p-8">Qty sold</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of data.bestSellingProducts; track p.productId) {
+                  <tr>
+                    <td class="p-8">{{ p.productName }}</td>
+                    <td class="p-8 text-right">{{ p.quantitySold }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
   </div>
 }

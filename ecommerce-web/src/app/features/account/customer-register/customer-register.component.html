@@ -1,43 +1,78 @@
-<div class="auth-page">
-  <div class="auth-card">
-    <h1>Create account</h1>
-    <p class="hint">
-      Register to place orders under your own profile. Demo seed emails (e.g. ahmed&#64;example.com) can be claimed with the same address.
-    </p>
+<div class="blank-layout-container justify-content-center align-items-center bg-light">
+  <div class="position-relative row w-100 h-100 bg-gredient justify-content-center">
+    <div class="col-lg-5 d-flex align-items-center">
+      <mat-card class="cardWithShadow boxed-auth">
+        <mat-card-content class="p-32">
+          <div class="text-center">
+            <div
+              class="d-inline-flex align-items-center justify-content-center rounded bg-primary text-white f-w-700 m-b-8"
+              style="width: 48px; height: 48px"
+            >
+              S
+            </div>
+            <h4 class="f-w-600 m-b-4">Create account</h4>
+            <p class="f-s-14 text-muted m-b-0">Register to place orders under your profile</p>
+          </div>
 
-    @if (error) {
-      <div class="alert alert-error">{{ error }}</div>
-    }
+          @if (error) {
+            <div class="bg-light-error text-error rounded p-12 m-t-24">{{ error }}</div>
+          }
 
-    <form (ngSubmit)="submit()">
-      <label class="form-field">
-        <span>Full name</span>
-        <input name="name" [(ngModel)]="name" required />
-      </label>
-      <label class="form-field">
-        <span>Email</span>
-        <input type="email" name="email" [(ngModel)]="email" autocomplete="email" required />
-      </label>
-      <label class="form-field">
-        <span>Phone</span>
-        <input name="phone" [(ngModel)]="phone" />
-      </label>
-      <label class="form-field">
-        <span>Password</span>
-        <input
-          type="password"
-          name="password"
-          [(ngModel)]="password"
-          autocomplete="new-password"
-          required
-          minlength="6"
-        />
-      </label>
-      <button type="submit" class="btn-primary btn-block" [disabled]="loading">
-        {{ loading ? 'Creating…' : 'Register' }}
-      </button>
-    </form>
+          <form class="m-t-24" (ngSubmit)="submit()">
+            <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">Full name</mat-label>
+            <mat-form-field appearance="outline" class="w-100" color="primary">
+              <input matInput name="name" [(ngModel)]="name" required />
+            </mat-form-field>
 
-    <p class="auth-links"><a routerLink="/account/login">Already have an account?</a></p>
+            <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">Email</mat-label>
+            <mat-form-field appearance="outline" class="w-100" color="primary">
+              <input matInput type="email" name="email" [(ngModel)]="email" autocomplete="email" required />
+            </mat-form-field>
+
+            <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">Phone</mat-label>
+            <mat-form-field appearance="outline" class="w-100" color="primary">
+              <input matInput name="phone" [(ngModel)]="phone" />
+            </mat-form-field>
+
+            <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">Carte d'identité (CIN)</mat-label>
+            <mat-form-field appearance="outline" class="w-100" color="primary">
+              <input
+                matInput
+                name="identityCard"
+                [(ngModel)]="identityCard"
+                required
+                maxlength="8"
+                minlength="8"
+                pattern="[0-9]{8}"
+                inputmode="numeric"
+                placeholder="8 digits"
+              />
+            </mat-form-field>
+
+            <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">Password</mat-label>
+            <mat-form-field appearance="outline" class="w-100" color="primary">
+              <input
+                matInput
+                type="password"
+                name="password"
+                [(ngModel)]="password"
+                autocomplete="new-password"
+                required
+                minlength="6"
+              />
+            </mat-form-field>
+
+            <button mat-flat-button color="primary" class="w-100" type="submit" [disabled]="loading">
+              {{ loading ? 'Creating…' : 'Register' }}
+            </button>
+          </form>
+
+          <span class="d-block f-w-500 text-center m-t-24">
+            Already have an account?
+            <a routerLink="/account/login" class="text-decoration-none text-primary f-w-500 f-s-14">Sign in</a>
+          </span>
+        </mat-card-content>
+      </mat-card>
+    </div>
   </div>
 </div>

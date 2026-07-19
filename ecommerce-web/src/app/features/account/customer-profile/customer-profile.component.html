@@ -1,0 +1,63 @@
+<div class="page-narrow">
+  <mat-card class="cardWithShadow">
+    <mat-card-content class="p-32">
+      <div class="text-center m-b-24">
+        <div
+          class="d-inline-flex align-items-center justify-content-center rounded bg-primary text-white f-w-700 m-b-8"
+          style="width: 48px; height: 48px"
+        >
+          S
+        </div>
+        <h4 class="f-w-600 m-b-4">My profile</h4>
+        <p class="f-s-14 text-muted m-b-0">Update your name, phone, and carte d'identité (CIN).</p>
+      </div>
+
+      @if (error) {
+        <div class="bg-light-error text-error rounded p-12 m-b-16">{{ error }}</div>
+      }
+      @if (success) {
+        <div class="bg-light-success text-success rounded p-12 m-b-16">{{ success }}</div>
+      }
+
+      <form (ngSubmit)="submit()">
+        <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">Email</mat-label>
+        <mat-form-field appearance="outline" class="w-100" color="primary">
+          <input matInput [value]="email" disabled />
+        </mat-form-field>
+
+        <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">Full name</mat-label>
+        <mat-form-field appearance="outline" class="w-100" color="primary">
+          <input matInput name="name" [(ngModel)]="name" required />
+        </mat-form-field>
+
+        <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">Phone</mat-label>
+        <mat-form-field appearance="outline" class="w-100" color="primary">
+          <input matInput name="phone" [(ngModel)]="phone" />
+        </mat-form-field>
+
+        <mat-label class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block">Carte d'identité (CIN)</mat-label>
+        <mat-form-field appearance="outline" class="w-100" color="primary">
+          <input
+            matInput
+            name="identityCard"
+            [(ngModel)]="identityCard"
+            required
+            maxlength="8"
+            minlength="8"
+            pattern="[0-9]{8}"
+            inputmode="numeric"
+            placeholder="8 digits"
+          />
+        </mat-form-field>
+
+        <button mat-flat-button color="primary" class="w-100" type="submit" [disabled]="loading">
+          {{ loading ? 'Saving…' : 'Save' }}
+        </button>
+      </form>
+
+      <span class="d-block f-w-500 text-center m-t-24">
+        <a routerLink="/account/orders" class="text-decoration-none text-primary f-w-500 f-s-14">← My orders</a>
+      </span>
+    </mat-card-content>
+  </mat-card>
+</div>

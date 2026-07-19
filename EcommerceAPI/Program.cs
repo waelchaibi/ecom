@@ -19,6 +19,7 @@ builder.Services.Configure<CheckoutPricingOptions>(builder.Configuration.GetSect
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<AdminCredentialsOptions>(builder.Configuration.GetSection(AdminCredentialsOptions.SectionName));
 builder.Services.Configure<AdminSecurityOptions>(builder.Configuration.GetSection(AdminSecurityOptions.SectionName));
+builder.Services.Configure<GroqOptions>(builder.Configuration.GetSection(GroqOptions.SectionName));
 
 var jwtSettings = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
 if (string.IsNullOrWhiteSpace(jwtSettings.Secret) || jwtSettings.Secret.Length < 32)
@@ -96,6 +97,7 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IGiftRepository, GiftRepository>();
 builder.Services.AddScoped<IGiftRuleRepository, GiftRuleRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductImageStorage, ProductImageStorage>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
@@ -112,6 +114,9 @@ builder.Services.AddScoped<IGiftService, GiftService>();
 builder.Services.AddScoped<IGiftRuleService, GiftRuleService>();
 builder.Services.AddScoped<IGiftRuleFactory, GiftRuleFactory>();
 builder.Services.AddScoped<IGiftAssignmentService, GiftAssignmentService>();
+builder.Services.AddScoped<IChatQueryTools, ChatQueryTools>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddHttpClient<IChatAgentService, ChatAgentService>();
 
 builder.Services.AddCors(options =>
 {
@@ -165,6 +170,7 @@ app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<RateLimitMiddleware>();
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseCors("DevCors");
 app.UseAuthentication();
 app.UseMiddleware<AdminIpAllowlistMiddleware>();

@@ -3,57 +3,87 @@ import { adminAuthGuard } from './core/guards/admin-auth.guard';
 import { customerAuthGuard } from './core/guards/customer-auth.guard';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'products' },
+  { path: '', pathMatch: 'full', redirectTo: 'account/login' },
   {
-    path: 'products',
+    path: '',
     loadComponent: () =>
-      import('./features/products/product-list/product-list.component').then((m) => m.ProductListComponent)
+      import('./layouts/blank/blank-layout.component').then((m) => m.BlankLayoutComponent),
+    children: [
+      {
+        path: 'account/login',
+        loadComponent: () =>
+          import('./features/account/customer-login/customer-login.component').then(
+            (m) => m.CustomerLoginComponent
+          )
+      },
+      {
+        path: 'account/register',
+        loadComponent: () =>
+          import('./features/account/customer-register/customer-register.component').then(
+            (m) => m.CustomerRegisterComponent
+          )
+      },
+      {
+        path: 'login',
+        loadComponent: () =>
+          import('./features/admin/admin-login/admin-login.component').then((m) => m.AdminLoginComponent)
+      },
+      { path: 'admin/login', redirectTo: 'login', pathMatch: 'full' }
+    ]
   },
   {
-    path: 'products/:id',
+    path: '',
     loadComponent: () =>
-      import('./features/products/product-detail/product-detail.component').then((m) => m.ProductDetailComponent)
+      import('./layouts/storefront/storefront-layout.component').then((m) => m.StorefrontLayoutComponent),
+    children: [
+      {
+        path: 'products',
+        loadComponent: () =>
+          import('./features/products/product-list/product-list.component').then((m) => m.ProductListComponent)
+      },
+      {
+        path: 'products/:id',
+        loadComponent: () =>
+          import('./features/products/product-detail/product-detail.component').then(
+            (m) => m.ProductDetailComponent
+          )
+      },
+      {
+        path: 'cart',
+        canActivate: [customerAuthGuard],
+        loadComponent: () =>
+          import('./features/cart/cart-page/cart-page.component').then((m) => m.CartPageComponent)
+      },
+      {
+        path: 'order',
+        canActivate: [customerAuthGuard],
+        loadComponent: () =>
+          import('./features/orders/order-create/order-create.component').then((m) => m.OrderCreateComponent)
+      },
+      {
+        path: 'account/orders',
+        canActivate: [customerAuthGuard],
+        loadComponent: () =>
+          import('./features/account/my-orders/my-orders.component').then((m) => m.MyOrdersComponent)
+      },
+      {
+        path: 'account/profile',
+        canActivate: [customerAuthGuard],
+        loadComponent: () =>
+          import('./features/account/customer-profile/customer-profile.component').then(
+            (m) => m.CustomerProfileComponent
+          )
+      },
+      {
+        path: 'account/orders/:id',
+        canActivate: [customerAuthGuard],
+        loadComponent: () =>
+          import('./features/account/my-order-detail/my-order-detail.component').then(
+            (m) => m.MyOrderDetailComponent
+          )
+      }
+    ]
   },
-  {
-    path: 'cart',
-    canActivate: [customerAuthGuard],
-    loadComponent: () =>
-      import('./features/cart/cart-page/cart-page.component').then((m) => m.CartPageComponent)
-  },
-  {
-    path: 'order',
-    canActivate: [customerAuthGuard],
-    loadComponent: () =>
-      import('./features/orders/order-create/order-create.component').then((m) => m.OrderCreateComponent)
-  },
-  {
-    path: 'account/login',
-    loadComponent: () =>
-      import('./features/account/customer-login/customer-login.component').then((m) => m.CustomerLoginComponent)
-  },
-  {
-    path: 'account/register',
-    loadComponent: () =>
-      import('./features/account/customer-register/customer-register.component').then((m) => m.CustomerRegisterComponent)
-  },
-  {
-    path: 'account/orders',
-    canActivate: [customerAuthGuard],
-    loadComponent: () =>
-      import('./features/account/my-orders/my-orders.component').then((m) => m.MyOrdersComponent)
-  },
-  {
-    path: 'account/orders/:id',
-    canActivate: [customerAuthGuard],
-    loadComponent: () =>
-      import('./features/account/my-order-detail/my-order-detail.component').then((m) => m.MyOrderDetailComponent)
-  },
-  {
-    path: 'login',
-    loadComponent: () =>
-      import('./features/admin/admin-login/admin-login.component').then((m) => m.AdminLoginComponent)
-  },
-  { path: 'admin/login', redirectTo: 'login', pathMatch: 'full' },
   {
     path: 'admin',
     loadComponent: () =>
@@ -64,7 +94,9 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadComponent: () =>
-          import('./features/admin/admin-dashboard/admin-dashboard.component').then((m) => m.AdminDashboardComponent)
+          import('./features/admin/admin-dashboard/admin-dashboard.component').then(
+            (m) => m.AdminDashboardComponent
+          )
       },
       {
         path: 'products',
@@ -81,7 +113,9 @@ export const routes: Routes = [
       {
         path: 'gift-rules',
         loadComponent: () =>
-          import('./features/admin/admin-gift-rules/admin-gift-rules.component').then((m) => m.AdminGiftRulesComponent)
+          import('./features/admin/admin-gift-rules/admin-gift-rules.component').then(
+            (m) => m.AdminGiftRulesComponent
+          )
       },
       {
         path: 'orders',
@@ -105,7 +139,9 @@ export const routes: Routes = [
       {
         path: 'customers',
         loadComponent: () =>
-          import('./features/admin/admin-customers/admin-customers.component').then((m) => m.AdminCustomersComponent)
+          import('./features/admin/admin-customers/admin-customers.component').then(
+            (m) => m.AdminCustomersComponent
+          )
       },
       {
         path: 'customers/:id',

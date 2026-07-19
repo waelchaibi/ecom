@@ -1,28 +1,53 @@
-<p><a routerLink="/admin/customers">← Customers</a></p>
-<h1>Customer #{{ customerId }} — orders</h1>
-@if (err) {
-  <p class="err">{{ err }}</p>
+<a mat-button color="primary" routerLink="/admin/customers">← Customers</a>
+
+@if (customer) {
+  <div class="m-t-16 m-b-24">
+    <h4 class="page-title m-b-0">{{ customer.name }}</h4>
+  </div>
+  <mat-card class="cardWithShadow m-b-24">
+    <mat-card-content>
+      <dl class="customer-meta m-0">
+        <div><dt>ID</dt><dd>{{ customer.id }}</dd></div>
+        <div><dt>Email</dt><dd>{{ customer.email }}</dd></div>
+        <div><dt>Phone</dt><dd>{{ customer.phone || '—' }}</dd></div>
+        <div><dt>CIN</dt><dd>{{ customer.identityCard }}</dd></div>
+      </dl>
+    </mat-card-content>
+  </mat-card>
+} @else {
+  <h4 class="page-title m-t-16 m-b-24">Customer #{{ customerId }}</h4>
 }
 
-<table>
-  <thead>
-    <tr>
-      <th>Order</th>
-      <th>Total</th>
-      <th>Status</th>
-      <th>Created</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    @for (o of orders; track o.id) {
-      <tr>
-        <td>{{ o.id }}</td>
-        <td>{{ o.totalAmount | number: '1.2-2' }}</td>
-        <td>{{ o.status }}</td>
-        <td>{{ o.createdAt | date: 'short' }}</td>
-        <td><a [routerLink]="['/admin/orders', o.id]">Details</a></td>
-      </tr>
-    }
-  </tbody>
-</table>
+@if (err) {
+  <div class="bg-light-error text-error rounded p-12 m-b-24">{{ err }}</div>
+}
+
+<mat-card class="cardWithShadow">
+  <mat-card-content>
+    <h5 class="f-w-600 m-b-16">Orders</h5>
+    <div class="table-responsive">
+      <table class="w-100 admin-table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (o of orders; track o.id) {
+            <tr>
+              <td>{{ o.id }}</td>
+              <td>{{ o.totalAmount | number: '1.2-2' }}</td>
+              <td>{{ o.status }}</td>
+              <td>{{ o.createdAt | date: 'short' }}</td>
+              <td><a mat-button color="primary" [routerLink]="['/admin/orders', o.id]">Details</a></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </mat-card-content>
+</mat-card>

@@ -20,6 +20,8 @@ public class AppDbContext : DbContext
     public DbSet<GiftRule> GiftRules => Set<GiftRule>();
     public DbSet<OrderGift> OrderGifts => Set<OrderGift>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<ChatThread> ChatThreads => Set<ChatThread>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -55,8 +57,10 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
             entity.Property(e => e.Email).IsRequired().HasMaxLength(100);
             entity.Property(e => e.Phone).HasMaxLength(20);
+            entity.Property(e => e.IdentityCard).IsRequired().HasMaxLength(8);
             entity.Property(e => e.PasswordHash).HasMaxLength(200);
             entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasIndex(e => e.IdentityCard).IsUnique();
         });
 
         // Order configuration
@@ -172,6 +176,32 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        modelBuilder.Entity<ChatThread>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UserRole).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.AdminUsername).HasMaxLength(100);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+            entity.HasIndex(e => e.CustomerId);
+            entity.HasIndex(e => e.AdminUsername);
+            entity.HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ChatMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Role).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.Content).IsRequired();
+            entity.HasIndex(e => e.ThreadId);
+            entity.HasOne(e => e.Thread)
+                .WithMany(t => t.Messages)
+                .HasForeignKey(e => e.ThreadId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         // Seed initial data
         SeedData(modelBuilder);
     }
@@ -193,11 +223,11 @@ public class AppDbContext : DbContext
             new Product { Id = 5, Name = "USB-C Cable", Description = "High-speed USB-C cable", Price = 14.99m, StockQuantity = 100, CategoryId = 3, ImageUrl = SeedProductImages.UsbCable }
         );
 
-        // Seed Customers
+        // Seed Customers (IdentityCard placeholders: 9000000N)
         modelBuilder.Entity<Customer>().HasData(
-            new Customer { Id = 1, Name = "Ahmed Hassan", Email = "ahmed@example.com", Phone = "+966501234567" },
-            new Customer { Id = 2, Name = "Fatima Al-Rashid", Email = "fatima@example.com", Phone = "+966509876543" },
-            new Customer { Id = 3, Name = "Mohammed Ali", Email = "mohammed@example.com", Phone = "+966551234567" }
+            new Customer { Id = 1, Name = "Ahmed Hassan", Email = "ahmed@example.com", Phone = "+966501234567", IdentityCard = "90000001" },
+            new Customer { Id = 2, Name = "Fatima Al-Rashid", Email = "fatima@example.com", Phone = "+966509876543", IdentityCard = "90000002" },
+            new Customer { Id = 3, Name = "Mohammed Ali", Email = "mohammed@example.com", Phone = "+966551234567", IdentityCard = "90000003" }
         );
     }
 }

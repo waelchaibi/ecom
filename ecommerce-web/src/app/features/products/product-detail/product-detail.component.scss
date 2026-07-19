@@ -1,17 +1,8 @@
-.back-link {
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-
 .detail-skeleton {
   height: 420px;
+  border-radius: 7px;
   animation: shimmer 1.2s infinite;
-  background: linear-gradient(
-    90deg,
-    var(--color-bg-muted) 25%,
-    #f3f1ed 50%,
-    var(--color-bg-muted) 75%
-  );
+  background: linear-gradient(90deg, #f6f9fc 25%, #eef2f6 50%, #f6f9fc 75%);
   background-size: 200% 100%;
 }
 
@@ -32,13 +23,10 @@
   }
 
   &__badge {
-    position: absolute;
+    position: absolute !important;
     top: 0.85rem;
     left: 0.85rem;
-    padding: 0.3rem 0.75rem;
-    border-radius: var(--radius-full);
-    background: rgba(255, 255, 255, 0.92);
-    font-size: 0.72rem;
+    font-size: 0.72rem !important;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -47,36 +35,25 @@
   &__info {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-
-    h1 {
-      margin: 0;
-      font-size: clamp(1.5rem, 3vw, 2rem);
-    }
+    padding: 0 !important;
   }
 
   &__price {
-    margin: 0;
     font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--color-primary);
+    color: #5d87ff;
   }
 
   &__stock {
-    margin: 0;
-    font-size: 0.9rem;
-    color: var(--color-text-muted);
+    color: var(--color-text-muted, #7c8fac);
 
     &.low {
-      color: var(--color-accent);
+      color: #fa896b;
       font-weight: 600;
     }
   }
 
   &__desc {
-    margin: 0.5rem 0 0;
     line-height: 1.65;
-    color: var(--color-text);
     white-space: pre-wrap;
   }
 
@@ -84,13 +61,21 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.65rem;
-    margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 1px solid var(--color-border);
+    border-top: 1px solid #e5eaef;
 
     .disabled {
       pointer-events: none;
       opacity: 0.55;
     }
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
   }
 }

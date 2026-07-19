@@ -1,46 +1,50 @@
-<div class="page-header">
-  <h1>My orders</h1>
+<div class="page-header m-b-24">
+  <h4 class="f-w-600 m-b-4">My orders</h4>
   @if (auth.profile(); as p) {
-    <p class="lead">Signed in as {{ p.name }} · {{ p.email }}</p>
+    <p class="f-s-14 text-muted m-b-0">Signed in as {{ p.name }} · {{ p.email }}</p>
   }
 </div>
 
 @if (err) {
-  <div class="alert alert-error">{{ err }}</div>
+  <div class="bg-light-error text-error rounded p-12 m-b-16">{{ err }}</div>
 }
 
 @if (orders.length === 0 && !err) {
-  <div class="empty-state surface-card">
-    <h2>No orders yet</h2>
-    <p class="muted">When you place an order, it will show up here.</p>
-    <a routerLink="/products" class="btn-primary">Start shopping</a>
-  </div>
+  <mat-card class="cardWithShadow empty-state text-center p-32">
+    <mat-card-content>
+      <h5 class="f-w-600 m-b-8">No orders yet</h5>
+      <p class="text-muted m-b-24">When you place an order, it will show up here.</p>
+      <a mat-flat-button color="primary" routerLink="/products">Start shopping</a>
+    </mat-card-content>
+  </mat-card>
 }
 
 @if (orders.length) {
   <div class="order-cards">
     @for (o of orders; track o.id) {
-      <article class="order-card surface-card">
-        <div class="order-card__head">
-          <div>
-            <span class="order-card__id">Order #{{ o.id }}</span>
-            <span class="order-card__date">{{ o.createdAt | date: 'medium' }}</span>
+      <mat-card class="cardWithShadow order-card">
+        <mat-card-content>
+          <div class="order-card__head">
+            <div>
+              <span class="order-card__id f-w-600">Order #{{ o.id }}</span>
+              <span class="order-card__date f-s-14 text-muted d-block">{{ o.createdAt | date: 'medium' }}</span>
+            </div>
+            <mat-chip [class]="statusClass(o.status)">{{ o.status }}</mat-chip>
           </div>
-          <span [class]="statusClass(o.status)">{{ o.status }}</span>
-        </div>
-        <p class="order-card__total">{{ o.totalAmount | number: '1.2-2' }}</p>
-        <div class="order-card__actions">
-          @if (o.status === 'Pending') {
-            <a class="btn-accent btn-sm" [routerLink]="['/account/orders', o.id]">Pay now</a>
-          }
-          <a class="btn-secondary btn-sm" [routerLink]="['/account/orders', o.id]">View details</a>
-        </div>
-      </article>
+          <p class="order-card__total f-w-600 m-b-16">{{ o.totalAmount | number: '1.2-2' }}</p>
+          <div class="order-card__actions">
+            @if (o.status === 'Pending') {
+              <a mat-flat-button color="primary" [routerLink]="['/account/orders', o.id]">Pay now</a>
+            }
+            <a mat-stroked-button [routerLink]="['/account/orders', o.id]">View details</a>
+          </div>
+        </mat-card-content>
+      </mat-card>
     }
   </div>
 }
 
-<p class="orders-footer">
-  <a routerLink="/order" class="btn-primary btn-sm">Place new order</a>
-  <button type="button" class="btn-ghost btn-sm" (click)="logout()">Sign out</button>
-</p>
+<div class="orders-footer m-t-24">
+  <a mat-flat-button color="primary" routerLink="/order">Place new order</a>
+  <button type="button" mat-stroked-button (click)="logout()">Sign out</button>
+</div>

@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AdminApiService, AdminOrderListItem, PagedOrders } from '../../../core/services/admin-api.service';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
+import { MaterialModule } from '../../../shared/material.module';
 
 @Component({
   selector: 'app-admin-orders',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, MaterialModule],
   templateUrl: './admin-orders.component.html',
   styleUrl: './admin-orders.component.scss'
 })

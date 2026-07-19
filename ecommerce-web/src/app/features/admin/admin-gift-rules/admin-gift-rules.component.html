@@ -1,130 +1,162 @@
-<h1>Gift rules</h1>
-<p class="hint">
-  <strong>Conditions:</strong> Amount = minimum cart total (decimal). Loyalty = minimum number of prior completed orders. Promotion = code
-  (e.g. <code>SPRINT2</code>), case-insensitive.
-</p>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 m-b-24">
+  <h4 class="page-title m-b-0">Gift rules</h4>
+</div>
+
+<mat-card class="cardWithShadow m-b-24">
+  <mat-card-content>
+    <p class="text-muted m-b-0 f-s-14">
+      <strong>Conditions:</strong> Amount = minimum cart total (decimal). Loyalty = minimum number of prior completed orders. Promotion = code
+      (e.g. <code>SPRINT2</code>), case-insensitive.
+    </p>
+  </mat-card-content>
+</mat-card>
+
 @if (msg) {
-  <p class="ok">{{ msg }}</p>
+  <div class="bg-light-success text-success rounded p-12 m-b-24">{{ msg }}</div>
 }
 @if (err) {
-  <p class="err">{{ err }}</p>
+  <div class="bg-light-error text-error rounded p-12 m-b-24">{{ err }}</div>
 }
 
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Type</th>
-      <th>Condition</th>
-      <th>Gift</th>
-      <th>Active</th>
-      <th>Priority</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    @for (r of rules; track r.id) {
-      <tr>
-        <td>{{ r.id }}</td>
-        <td>
-          @if (editId === r.id) {
-            <select [(ngModel)]="draft.ruleType" name="rt{{ r.id }}">
-              <option [ngValue]="0">Amount</option>
-              <option [ngValue]="1">Loyalty</option>
-              <option [ngValue]="2">Promotion</option>
-            </select>
-          } @else {
-            {{ ruleLabel(r.ruleType) }}
+<mat-card class="cardWithShadow m-b-24">
+  <mat-card-content>
+    <div class="table-responsive">
+      <table class="w-100 admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Condition</th>
+            <th>Gift</th>
+            <th>Active</th>
+            <th>Priority</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of rules; track r.id) {
+            <tr>
+              <td>{{ r.id }}</td>
+              <td>
+                @if (editId === r.id) {
+                  <mat-form-field appearance="outline" class="table-field">
+                    <mat-select [(ngModel)]="draft.ruleType" name="rt{{ r.id }}">
+                      <mat-option [value]="0">Amount</mat-option>
+                      <mat-option [value]="1">Loyalty</mat-option>
+                      <mat-option [value]="2">Promotion</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                } @else {
+                  {{ ruleLabel(r.ruleType) }}
+                }
+              </td>
+              <td>
+                @if (editId === r.id) {
+                  <mat-form-field appearance="outline" class="table-field">
+                    <input matInput [(ngModel)]="draft.conditionValue" name="cv{{ r.id }}" />
+                  </mat-form-field>
+                } @else {
+                  {{ r.conditionValue }}
+                }
+              </td>
+              <td>
+                @if (editId === r.id) {
+                  <mat-form-field appearance="outline" class="table-field">
+                    <mat-select [(ngModel)]="draft.giftId" name="g{{ r.id }}">
+                      @for (g of gifts; track g.id) {
+                        <mat-option [value]="g.id">{{ g.name }} ({{ g.stockQuantity }})</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                } @else {
+                  {{ r.gift?.name ?? r.giftId }}
+                }
+              </td>
+              <td>{{ r.isActive ? 'Yes' : 'No' }}</td>
+              <td>
+                @if (editId === r.id) {
+                  <mat-form-field appearance="outline" class="table-field">
+                    <input matInput type="number" [(ngModel)]="draft.priority" name="pr{{ r.id }}" />
+                  </mat-form-field>
+                } @else {
+                  {{ r.priority }}
+                }
+              </td>
+              <td class="acts">
+                @if (editId === r.id) {
+                  <button mat-flat-button color="primary" type="button" (click)="saveRule()">Save</button>
+                  <button mat-stroked-button type="button" (click)="cancelEdit()">Cancel</button>
+                } @else {
+                  <button mat-stroked-button type="button" (click)="startEdit(r)">Edit</button>
+                  <button mat-stroked-button type="button" (click)="toggleActive(r)">{{ r.isActive ? 'Deactivate' : 'Activate' }}</button>
+                  <button mat-button color="warn" type="button" (click)="deleteRule(r)">Delete</button>
+                }
+              </td>
+            </tr>
           }
-        </td>
-        <td>
-          @if (editId === r.id) {
-            <input [(ngModel)]="draft.conditionValue" name="cv{{ r.id }}" />
-          } @else {
-            {{ r.conditionValue }}
-          }
-        </td>
-        <td>
-          @if (editId === r.id) {
-            <select [(ngModel)]="draft.giftId" name="g{{ r.id }}">
+        </tbody>
+      </table>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<div class="row">
+  <div class="col-lg-6">
+    <mat-card class="cardWithShadow m-b-24">
+      <mat-card-content>
+        <h5 class="f-w-600 m-b-16">Add rule</h5>
+        <form class="d-flex flex-column gap-3" (ngSubmit)="createRule()">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Type</mat-label>
+            <mat-select [(ngModel)]="newRule.ruleType" name="nrt">
+              <mat-option [value]="0">Amount</mat-option>
+              <mat-option [value]="1">Loyalty</mat-option>
+              <mat-option [value]="2">Promotion</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Condition value</mat-label>
+            <input matInput [(ngModel)]="newRule.conditionValue" name="ncv" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Gift</mat-label>
+            <mat-select [(ngModel)]="newRule.giftId" name="ng" required>
+              <mat-option [value]="0" disabled>Select gift</mat-option>
               @for (g of gifts; track g.id) {
-                <option [ngValue]="g.id">{{ g.name }} ({{ g.stockQuantity }})</option>
+                <mat-option [value]="g.id">{{ g.name }}</mat-option>
               }
-            </select>
-          } @else {
-            {{ r.gift?.name ?? r.giftId }}
-          }
-        </td>
-        <td>{{ r.isActive ? 'Yes' : 'No' }}</td>
-        <td>
-          @if (editId === r.id) {
-            <input type="number" [(ngModel)]="draft.priority" name="pr{{ r.id }}" />
-          } @else {
-            {{ r.priority }}
-          }
-        </td>
-        <td class="acts">
-          @if (editId === r.id) {
-            <button type="button" (click)="saveRule()">Save</button>
-            <button type="button" (click)="cancelEdit()">Cancel</button>
-          } @else {
-            <button type="button" (click)="startEdit(r)">Edit</button>
-            <button type="button" (click)="toggleActive(r)">{{ r.isActive ? 'Deactivate' : 'Activate' }}</button>
-            <button type="button" class="danger" (click)="deleteRule(r)">Delete</button>
-          }
-        </td>
-      </tr>
-    }
-  </tbody>
-</table>
-
-<h2>Add rule</h2>
-<form class="form" (ngSubmit)="createRule()">
-  <label>
-    Type
-    <select [(ngModel)]="newRule.ruleType" name="nrt">
-      <option [ngValue]="0">Amount</option>
-      <option [ngValue]="1">Loyalty</option>
-      <option [ngValue]="2">Promotion</option>
-    </select>
-  </label>
-  <label>
-    Condition value
-    <input [(ngModel)]="newRule.conditionValue" name="ncv" required />
-  </label>
-  <label>
-    Gift
-    <select [(ngModel)]="newRule.giftId" name="ng" required>
-      <option [ngValue]="0" disabled>Select gift</option>
-      @for (g of gifts; track g.id) {
-        <option [ngValue]="g.id">{{ g.name }}</option>
-      }
-    </select>
-  </label>
-  <label class="inline">
-    <input type="checkbox" [(ngModel)]="newRule.isActive" name="na" />
-    Active
-  </label>
-  <label>
-    Priority
-    <input type="number" [(ngModel)]="newRule.priority" name="np" />
-  </label>
-  <button type="submit">Create rule</button>
-</form>
-
-<h2>Add gift (catalog)</h2>
-<form class="form" (ngSubmit)="createGift()">
-  <label>
-    Name
-    <input [(ngModel)]="newGift.name" name="gn" required />
-  </label>
-  <label>
-    Description
-    <input [(ngModel)]="newGift.description" name="gd" />
-  </label>
-  <label>
-    Stock
-    <input type="number" min="0" [(ngModel)]="newGift.stockQuantity" name="gs" />
-  </label>
-  <button type="submit">Create gift</button>
-</form>
+            </mat-select>
+          </mat-form-field>
+          <mat-checkbox [(ngModel)]="newRule.isActive" name="na">Active</mat-checkbox>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Priority</mat-label>
+            <input matInput type="number" [(ngModel)]="newRule.priority" name="np" />
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit">Create rule</button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  <div class="col-lg-6">
+    <mat-card class="cardWithShadow m-b-24">
+      <mat-card-content>
+        <h5 class="f-w-600 m-b-16">Add gift (catalog)</h5>
+        <form class="d-flex flex-column gap-3" (ngSubmit)="createGift()">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Name</mat-label>
+            <input matInput [(ngModel)]="newGift.name" name="gn" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Description</mat-label>
+            <input matInput [(ngModel)]="newGift.description" name="gd" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Stock</mat-label>
+            <input matInput type="number" min="0" [(ngModel)]="newGift.stockQuantity" name="gs" />
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit">Create gift</button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

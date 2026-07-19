@@ -1,61 +1,75 @@
-<h1>Audit log</h1>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 m-b-24">
+  <h4 class="page-title m-b-0">Audit log</h4>
+</div>
 
-<form class="filters" (ngSubmit)="applyFilters()">
-  <label>
-    Action
-    <input type="text" [(ngModel)]="action" name="action" placeholder="e.g. ConfirmPayment" />
-  </label>
-  <label>
-    Entity type
-    <input type="text" [(ngModel)]="entityType" name="entityType" placeholder="e.g. Order" />
-  </label>
-  <label>
-    From
-    <input type="datetime-local" [(ngModel)]="fromLocal" name="fromLocal" />
-  </label>
-  <label>
-    To
-    <input type="datetime-local" [(ngModel)]="toLocal" name="toLocal" />
-  </label>
-  <div class="filter-actions">
-    <button type="submit">Apply</button>
-    <button type="button" class="ghost" (click)="clearFilters()">Clear</button>
-  </div>
-</form>
+<mat-card class="cardWithShadow m-b-24">
+  <mat-card-content>
+    <form class="d-flex flex-wrap gap-3 align-items-end" (ngSubmit)="applyFilters()">
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label>Action</mat-label>
+        <input matInput type="text" [(ngModel)]="action" name="action" placeholder="e.g. ConfirmPayment" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="flex-grow-1">
+        <mat-label>Entity type</mat-label>
+        <input matInput type="text" [(ngModel)]="entityType" name="entityType" placeholder="e.g. Order" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>From</mat-label>
+        <input matInput type="date" [(ngModel)]="fromLocal" name="fromLocal" placeholder="YYYY-MM-DD" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>To</mat-label>
+        <input matInput type="date" [(ngModel)]="toLocal" name="toLocal" placeholder="YYYY-MM-DD" />
+      </mat-form-field>
+      <div class="admin-page-actions">
+        <button mat-flat-button color="primary" type="submit">Apply</button>
+        <button mat-stroked-button type="button" (click)="clearFilters()">Clear</button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
 
 @if (err) {
-  <p class="err">{{ err }}</p>
+  <div class="bg-light-error text-error rounded p-12 m-b-24">{{ err }}</div>
 }
 
 @if (data) {
-  <p class="meta">Page {{ data.page }} — {{ data.totalCount }} entries</p>
-  <div class="pager">
-    <button type="button" (click)="prev()" [disabled]="page <= 1">Previous</button>
-    <button type="button" (click)="next()" [disabled]="page * pageSize >= data.totalCount">Next</button>
-  </div>
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 m-b-16">
+        <p class="text-muted m-0 f-s-14">Page {{ data.page }} — {{ data.totalCount }} entries</p>
+        <div class="admin-page-actions">
+          <button mat-stroked-button type="button" (click)="prev()" [disabled]="page <= 1">Previous</button>
+          <button mat-stroked-button type="button" (click)="next()" [disabled]="page * pageSize >= data.totalCount">Next</button>
+        </div>
+      </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>When</th>
-        <th>Admin</th>
-        <th>Action</th>
-        <th>Entity</th>
-        <th>ID</th>
-        <th>Details</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (row of data.items; track row.id) {
-        <tr>
-          <td>{{ row.createdAt | date: 'short' }}</td>
-          <td>{{ row.adminUsername }}</td>
-          <td>{{ row.action }}</td>
-          <td>{{ row.entityType }}</td>
-          <td>{{ row.entityId ?? '—' }}</td>
-          <td class="details">{{ row.details ?? '—' }}</td>
-        </tr>
-      }
-    </tbody>
-  </table>
+      <div class="table-responsive">
+        <table class="w-100 admin-table">
+          <thead>
+            <tr>
+              <th>When</th>
+              <th>Admin</th>
+              <th>Action</th>
+              <th>Entity</th>
+              <th>ID</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of data.items; track row.id) {
+              <tr>
+                <td>{{ row.createdAt | date: 'short' }}</td>
+                <td>{{ row.adminUsername }}</td>
+                <td>{{ row.action }}</td>
+                <td>{{ row.entityType }}</td>
+                <td>{{ row.entityId ?? '—' }}</td>
+                <td class="details">{{ row.details ?? '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
 }

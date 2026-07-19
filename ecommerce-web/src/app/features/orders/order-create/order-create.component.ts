@@ -3,6 +3,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PaymentGatewayComponent } from '../../../core/components/payment-gateway/payment-gateway.component';
+import { MaterialModule } from '../../../shared/material.module';
 import { CheckoutApiService } from '../../../core/services/checkout-api.service';
 import { ProductApiService } from '../../../core/services/product-api.service';
 import { OrderApiService } from '../../../core/services/order-api.service';
@@ -22,7 +23,7 @@ interface LineDraft {
 @Component({
   selector: 'ecom-order-create',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, PaymentGatewayComponent],
+  imports: [CommonModule, FormsModule, RouterLink, PaymentGatewayComponent, MaterialModule],
   templateUrl: './order-create.component.html',
   styleUrl: './order-create.component.scss'
 })

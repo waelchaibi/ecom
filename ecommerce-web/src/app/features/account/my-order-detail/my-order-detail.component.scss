@@ -1,31 +1,32 @@
-.back-link {
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-
-.pay-box {
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1.5rem;
-
-  &__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1rem;
-  }
-}
-
 .detail-section {
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1rem;
-
-  h2 {
+  h5 {
     font-size: 1.05rem;
-    margin-bottom: 1rem;
   }
 }
 
 .gift-list {
-  margin: 0;
   padding-left: 1.15rem;
+}
+
+.badge-pending {
+  background: #fff8ec !important;
+  color: #ffae1f !important;
+}
+
+.badge-confirmed {
+  background: #e6fffa !important;
+  color: #13deb9 !important;
+}
+
+.badge-cancelled {
+  background: #fdede8 !important;
+  color: #fa896b !important;
+}
+
+.data-table-wrap {
+  border-color: #e5eaef;
+}
+
+.data-table tbody tr:hover td {
+  background: rgba(93, 135, 255, 0.04);
 }
