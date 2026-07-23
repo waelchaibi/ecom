@@ -18,19 +18,23 @@ public class ProductService : IProductService
         _context = context;
     }
 
-    public async Task<List<ProductDTO>> GetAllProductsAsync(int? categoryId = null)
+    public async Task<List<ProductDTO>> GetAllProductsAsync(int? categoryId = null, bool activeOnly = true)
     {
-        var products = await _repository.GetAllAsync(categoryId);
+        var products = await _repository.GetAllAsync(categoryId, activeOnly);
         return products.Select(ProductMapper.ToDto).ToList();
     }
 
-    public async Task<ProductDTO?> GetProductByIdAsync(int id)
+    public async Task<ProductDTO?> GetProductByIdAsync(int id, bool activeOnly = true)
     {
         if (id <= 0)
             throw new ArgumentException("Product ID must be greater than 0");
 
         var product = await _repository.GetByIdAsync(id);
-        return product is null ? null : ProductMapper.ToDto(product);
+        if (product is null)
+            return null;
+        if (activeOnly && !product.IsActive)
+            return null;
+        return ProductMapper.ToDto(product);
     }
 
     public async Task<ProductDTO> CreateProductAsync(CreateProductDTO dto) =>
@@ -60,7 +64,7 @@ public class ProductService : IProductService
         return ProductMapper.ToDto(product);
     }
 
-    public async Task DeleteProductAsync(int id)
+    public async Task SoftDeleteProductAsync(int id)
     {
         if (id <= 0)
             throw new ArgumentException("Product ID must be greater than 0");
@@ -69,10 +73,28 @@ public class ProductService : IProductService
         if (product is null)
             throw new ArgumentException($"Product with ID {id} not found");
 
-        if (await _repository.HasOrderItemsAsync(id))
-            throw new InvalidOperationException("Cannot delete a product that appears on existing orders.");
+        if (!product.IsActive)
+            return;
 
-        await _repository.DeleteAsync(product);
+        product.IsActive = false;
+        product.UpdatedAt = DateTime.UtcNow;
+        await _repository.UpdateAsync(product);
+        await _repository.RemoveFromAllCartsAsync(id);
+    }
+
+    public async Task<ProductDTO> RestoreProductAsync(int id)
+    {
+        if (id <= 0)
+            throw new ArgumentException("Product ID must be greater than 0");
+
+        var product = await _repository.GetByIdAsync(id);
+        if (product is null)
+            throw new ArgumentException($"Product with ID {id} not found");
+
+        product.IsActive = true;
+        product.UpdatedAt = DateTime.UtcNow;
+        await _repository.UpdateAsync(product);
+        return ProductMapper.ToDto(product);
     }
 
     public async Task<ProductDTO> UpdateStockAsync(int id, int stockQuantity)
@@ -105,7 +127,8 @@ public class ProductService : IProductService
             Price = dto.Price,
             StockQuantity = dto.StockQuantity,
             CategoryId = dto.CategoryId,
-            ImageUrl = string.IsNullOrWhiteSpace(dto.ImageUrl) ? null : dto.ImageUrl.Trim()
+            ImageUrl = string.IsNullOrWhiteSpace(dto.ImageUrl) ? null : dto.ImageUrl.Trim(),
+            IsActive = true
         };
 
         return await _repository.CreateAsync(product);

@@ -57,9 +57,26 @@ public class AdminProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(int id)
     {
-        await _productService.DeleteProductAsync(id);
-        await _audit.LogAsync(User.Identity?.Name ?? "admin", "Delete", "Product", id);
+        await _productService.SoftDeleteProductAsync(id);
+        await _audit.LogAsync(User.Identity?.Name ?? "admin", "Archive", "Product", id);
         return NoContent();
+    }
+
+    [HttpPost("{id:int}/restore")]
+    [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ProductDTO>> Restore(int id)
+    {
+        var restored = await _productService.RestoreProductAsync(id);
+        await _audit.LogAsync(User.Identity?.Name ?? "admin", "Restore", "Product", id, restored.Name);
+        return Ok(restored);
+    }
+
+    [HttpGet]
+    [ProducesResponseType(typeof(IReadOnlyList<ProductDTO>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<ProductDTO>>> GetAll([FromQuery] int? categoryId)
+    {
+        var list = await _productService.GetAllProductsAsync(categoryId, activeOnly: false);
+        return Ok(list);
     }
 
     [HttpPatch("{id:int}/stock")]

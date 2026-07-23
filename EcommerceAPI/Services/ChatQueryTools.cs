@@ -125,7 +125,7 @@ public sealed class ChatQueryTools : IChatQueryTools
     {
         var q = root.TryGetProperty("query", out var qe) ? qe.GetString() : null;
         var take = Clamp(root, "take", 10, 25);
-        var query = _db.Products.AsNoTracking().Include(p => p.Category).AsQueryable();
+        var query = _db.Products.AsNoTracking().Include(p => p.Category).Where(p => p.IsActive).AsQueryable();
         if (!string.IsNullOrWhiteSpace(q))
             query = query.Where(p => p.Name.Contains(q));
         var rows = await query.OrderBy(p => p.Name).Take(take)
@@ -147,7 +147,8 @@ public sealed class ChatQueryTools : IChatQueryTools
     {
         if (!root.TryGetProperty("productId", out var idEl) || !idEl.TryGetInt32(out var id))
             return Json(new { error = "productId required" });
-        var p = await _db.Products.AsNoTracking().Include(x => x.Category).FirstOrDefaultAsync(x => x.Id == id, ct);
+        var p = await _db.Products.AsNoTracking().Include(x => x.Category)
+            .FirstOrDefaultAsync(x => x.Id == id && x.IsActive, ct);
         return p is null
             ? Json(new { error = "Not found" })
             : Json(new { p.Id, p.Name, p.Description, p.Price, p.StockQuantity, Category = p.Category?.Name });

@@ -13,11 +13,14 @@ public class ProductRepository : IProductRepository
         _context = context;
     }
 
-    public async Task<List<Product>> GetAllAsync(int? categoryId = null)
+    public async Task<List<Product>> GetAllAsync(int? categoryId = null, bool activeOnly = true)
     {
         var query = _context.Products
             .Include(p => p.Category)
             .AsQueryable();
+
+        if (activeOnly)
+            query = query.Where(p => p.IsActive);
 
         if (categoryId.HasValue)
             query = query.Where(p => p.CategoryId == categoryId.Value);
@@ -51,6 +54,15 @@ public class ProductRepository : IProductRepository
     public async Task<bool> HasOrderItemsAsync(int productId) =>
         await _context.OrderItems.AnyAsync(oi => oi.ProductId == productId);
 
+    public async Task RemoveFromAllCartsAsync(int productId)
+    {
+        var lines = await _context.CartItems.Where(i => i.ProductId == productId).ToListAsync();
+        if (lines.Count == 0)
+            return;
+        _context.CartItems.RemoveRange(lines);
+        await SaveChangesAsync();
+    }
+
     public async Task<bool> TryDecrementStockAsync(
         int productId,
         int quantity,
@@ -58,7 +70,8 @@ public class ProductRepository : IProductRepository
         CancellationToken cancellationToken = default)
     {
         var rows = await _context.Database.ExecuteSqlInterpolatedAsync(
-            $@"UPDATE ""Products"" SET ""StockQuantity"" = ""StockQuantity"" - {quantity}, ""UpdatedAt"" = {updatedAtUtc} WHERE ""Id"" = {productId} AND ""StockQuantity"" >= {quantity}",
+            $@"UPDATE ""Products"" SET ""StockQuantity"" = ""StockQuantity"" - {quantity}, ""UpdatedAt"" = {updatedAtUtc}
+               WHERE ""Id"" = {productId} AND ""IsActive"" = TRUE AND ""StockQuantity"" >= {quantity}",
             cancellationToken);
         return rows == 1;
     }

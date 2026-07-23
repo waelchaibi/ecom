@@ -9,6 +9,8 @@ public class Product
     public int StockQuantity { get; set; }
     public int? CategoryId { get; set; }
     public string? ImageUrl { get; set; }
+    /// <summary>False when archived (soft-deleted). Hidden from the storefront but kept for order history.</summary>
+    public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

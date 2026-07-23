@@ -43,6 +43,8 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.Price).HasPrecision(10, 2);
             entity.Property(e => e.ImageUrl).HasMaxLength(500);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.HasIndex(e => e.IsActive);
 
             entity.HasOne(e => e.Category)
                 .WithMany(c => c.Products)
@@ -216,11 +218,11 @@ public class AppDbContext : DbContext
 
         // Seed Products
         modelBuilder.Entity<Product>().HasData(
-            new Product { Id = 1, Name = "Laptop", Description = "High-performance laptop", Price = 999.99m, StockQuantity = 10, CategoryId = 1, ImageUrl = SeedProductImages.Laptop },
-            new Product { Id = 2, Name = "Mouse", Description = "Wireless mouse", Price = 29.99m, StockQuantity = 50, CategoryId = 2, ImageUrl = SeedProductImages.Mouse },
-            new Product { Id = 3, Name = "Keyboard", Description = "Mechanical keyboard", Price = 79.99m, StockQuantity = 30, CategoryId = 2, ImageUrl = SeedProductImages.Keyboard },
-            new Product { Id = 4, Name = "Monitor", Description = "27-inch 4K monitor", Price = 299.99m, StockQuantity = 15, CategoryId = 2, ImageUrl = SeedProductImages.Monitor },
-            new Product { Id = 5, Name = "USB-C Cable", Description = "High-speed USB-C cable", Price = 14.99m, StockQuantity = 100, CategoryId = 3, ImageUrl = SeedProductImages.UsbCable }
+            new Product { Id = 1, Name = "Laptop", Description = "High-performance laptop", Price = 999.99m, StockQuantity = 10, CategoryId = 1, ImageUrl = SeedProductImages.Laptop, IsActive = true },
+            new Product { Id = 2, Name = "Mouse", Description = "Wireless mouse", Price = 29.99m, StockQuantity = 50, CategoryId = 2, ImageUrl = SeedProductImages.Mouse, IsActive = true },
+            new Product { Id = 3, Name = "Keyboard", Description = "Mechanical keyboard", Price = 79.99m, StockQuantity = 30, CategoryId = 2, ImageUrl = SeedProductImages.Keyboard, IsActive = true },
+            new Product { Id = 4, Name = "Monitor", Description = "27-inch 4K monitor", Price = 299.99m, StockQuantity = 15, CategoryId = 2, ImageUrl = SeedProductImages.Monitor, IsActive = true },
+            new Product { Id = 5, Name = "USB-C Cable", Description = "High-speed USB-C cable", Price = 14.99m, StockQuantity = 100, CategoryId = 3, ImageUrl = SeedProductImages.UsbCable, IsActive = true }
         );
 
         // Seed Customers (IdentityCard placeholders: 9000000N)

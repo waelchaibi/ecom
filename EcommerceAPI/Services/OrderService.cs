@@ -99,7 +99,7 @@ public class OrderService : IOrderService
                 throw new ArgumentException("Quantity must be greater than 0");
 
             var product = await _productRepository.GetByIdAsync(item.ProductId);
-            if (product == null)
+            if (product == null || !product.IsActive)
                 throw new ArgumentException($"Product with ID {item.ProductId} not found");
 
             if (product.StockQuantity < item.Quantity)

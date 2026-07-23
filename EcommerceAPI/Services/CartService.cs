@@ -40,7 +40,7 @@ public sealed class CartService : ICartService
             throw new ArgumentException("Quantity cannot be negative");
 
         var product = await _productRepository.GetByIdAsync(dto.ProductId);
-        if (product is null)
+        if (product is null || !product.IsActive)
             throw new ArgumentException($"Product with ID {dto.ProductId} not found");
 
         var cart = await _cartRepository.GetOrCreateAsync(customerId);

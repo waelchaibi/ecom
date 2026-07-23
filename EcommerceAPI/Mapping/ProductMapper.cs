@@ -14,6 +14,7 @@ public static class ProductMapper
         StockQuantity = product.StockQuantity,
         CategoryId = product.CategoryId,
         CategoryName = product.Category?.Name,
-        ImageUrl = product.ImageUrl
+        ImageUrl = product.ImageUrl,
+        IsActive = product.IsActive
     };
 }
