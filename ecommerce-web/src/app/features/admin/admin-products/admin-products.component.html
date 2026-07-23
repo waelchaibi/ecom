@@ -99,6 +99,7 @@
             <th>ID</th>
             <th>Image</th>
             <th>Name</th>
+            <th>Status</th>
             <th>Category</th>
             <th>Price</th>
             <th>Stock</th>
@@ -123,6 +124,13 @@
                   </mat-form-field>
                 } @else {
                   {{ p.name }}
+                }
+              </td>
+              <td>
+                @if (p.isActive !== false) {
+                  <span class="status-pill status-pill--active">Active</span>
+                } @else {
+                  <span class="status-pill status-pill--archived">Archived</span>
                 }
               </td>
               <td>
@@ -165,7 +173,11 @@
                   <button mat-stroked-button type="button" (click)="cancelEdit()" [disabled]="uploading">Cancel</button>
                 } @else {
                   <button mat-stroked-button type="button" (click)="startEdit(p)">Edit</button>
-                  <button mat-button color="warn" type="button" (click)="delete(p)">Delete</button>
+                  @if (p.isActive !== false) {
+                    <button mat-button color="warn" type="button" (click)="delete(p)">Archive</button>
+                  } @else {
+                    <button mat-stroked-button color="primary" type="button" (click)="restore(p)">Restore</button>
+                  }
                 }
                 <div class="stock-row">
                   <mat-form-field appearance="outline" class="table-field stock-field" subscriptSizing="dynamic">
@@ -177,7 +189,7 @@
             </tr>
             @if (editId === p.id) {
               <tr class="desc-row">
-                <td colspan="7">
+                <td colspan="8">
                   <div class="edit-extra">
                     <mat-form-field appearance="outline" class="edit-extra__desc">
                       <mat-label>Description</mat-label>

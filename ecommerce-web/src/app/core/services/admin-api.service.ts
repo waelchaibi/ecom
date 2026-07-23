@@ -198,6 +198,18 @@ export class AdminApiService {
     return this.http.delete<void>(`${this.base}/admin/products/${id}`);
   }
 
+  restoreProduct(id: number): Observable<Product> {
+    return this.http.post<Product>(`${this.base}/admin/products/${id}/restore`, {});
+  }
+
+  getAdminProducts(categoryId?: number | null): Observable<Product[]> {
+    let params = new HttpParams();
+    if (categoryId != null && categoryId > 0) {
+      params = params.set('categoryId', String(categoryId));
+    }
+    return this.http.get<Product[]>(`${this.base}/admin/products`, { params });
+  }
+
   updateStock(id: number, stockQuantity: number): Observable<Product> {
     return this.http.patch<Product>(`${this.base}/admin/products/${id}/stock`, { stockQuantity });
   }

@@ -5,7 +5,6 @@ import { firstValueFrom } from 'rxjs';
 import { Product } from '../../../core/models/product';
 import { AdminApiService } from '../../../core/services/admin-api.service';
 import { ConfirmDialogService } from '../../../core/services/confirm-dialog.service';
-import { ProductApiService } from '../../../core/services/product-api.service';
 import { resolveMediaUrl } from '../../../core/utils/media-url';
 import { MaterialModule } from '../../../shared/material.module';
 
@@ -22,7 +21,6 @@ interface CategoryOption {
   styleUrl: './admin-products.component.scss'
 })
 export class AdminProductsComponent implements OnInit {
-  private readonly productsApi = inject(ProductApiService);
   private readonly adminApi = inject(AdminApiService);
   private readonly confirmDialog = inject(ConfirmDialogService);
 
@@ -140,7 +138,7 @@ export class AdminProductsComponent implements OnInit {
 
   reload(): void {
     this.err = '';
-    this.productsApi.getAll().subscribe({
+    this.adminApi.getAdminProducts().subscribe({
       next: (list) => {
         this.products = list;
         for (const p of list) {
@@ -206,19 +204,34 @@ export class AdminProductsComponent implements OnInit {
 
   async delete(p: Product): Promise<void> {
     const confirmed = await this.confirmDialog.open({
-      title: 'Delete product',
-      message: `Delete "${p.name}"? This cannot be undone.`,
-      confirmLabel: 'Delete',
+      title: 'Archive product',
+      message: `Archive "${p.name}"? It will be hidden from the shop but kept for order history. You can restore it later.`,
+      confirmLabel: 'Archive',
       tone: 'danger'
     });
     if (!confirmed) return;
     this.adminApi.deleteProduct(p.id).subscribe({
       next: () => {
-        this.msg = 'Product deleted.';
+        this.msg = 'Product archived.';
         this.reload();
       },
-      error: () =>
-        (this.err = 'Delete not allowed if the product appears on past orders, or server error.')
+      error: () => (this.err = 'Archive failed.')
+    });
+  }
+
+  async restore(p: Product): Promise<void> {
+    const confirmed = await this.confirmDialog.open({
+      title: 'Restore product',
+      message: `Restore "${p.name}" to the shop?`,
+      confirmLabel: 'Restore'
+    });
+    if (!confirmed) return;
+    this.adminApi.restoreProduct(p.id).subscribe({
+      next: () => {
+        this.msg = 'Product restored.';
+        this.reload();
+      },
+      error: () => (this.err = 'Restore failed.')
     });
   }
 

@@ -7,6 +7,7 @@ export interface Product {
   categoryId?: number | null;
   categoryName?: string | null;
   imageUrl?: string | null;
+  isActive?: boolean;
 }
 
 export interface CreateProductPayload {
