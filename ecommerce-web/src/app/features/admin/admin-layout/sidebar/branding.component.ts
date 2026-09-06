@@ -13,7 +13,7 @@ import { RouterModule } from '@angular/router';
           style="width: 36px; height: 36px"
           >S</span
         >
-        <span class="f-w-600 f-s-16 text-dark">Shayma Admin</span>
+        <span class="f-w-600 f-s-16 text-dark">Olympia Admin</span>
       </a>
     </div>
   `
