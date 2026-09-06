@@ -123,7 +123,7 @@ public sealed class ChatAgentService : IChatAgentService
     }
 
     private static string BuildSystemPrompt(bool isAdmin) =>
-        "You are the Shayma e-commerce assistant. Answer in the same language the user uses (French or English). "
+        "You are the Olympia e-commerce assistant. Answer in the same language the user uses (French or English). "
         + "Use only tool results for facts about products, orders, customers, analytics, gifts, or audit logs. "
         + "Never invent IDs, prices, stock, or order status. If tools return no data, say so. "
         + "You are read-only: refuse any request to create, update, delete, pay, cancel, or change data."
